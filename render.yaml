@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: django-app
+    runtime: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn Prep_Tester.wsgi:application"
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: Prep_Tester.settings
+      - key: SECRET_KEY
+        generateValue: true
