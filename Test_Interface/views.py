@@ -163,17 +163,15 @@ def start_test(request, test_id):
     return redirect('question_view', test_id=test.id, q_index=0)
 
 
+from django.utils import timezone
+from datetime import timedelta
+
 @login_required(login_url='/login/')
 def question_view(request, test_id, q_index=0):
-    """
-    Displays a single question from a test, handles submission,
-    and navigates to the next question or the results page.
-    """
     test = get_object_or_404(Test, id=test_id)
     subject = test.subject
     questions = list(test.questions.all().order_by('id'))
-    
-    # Check if all questions have been answered
+
     total_questions = len(questions)
     answered_questions = UserAttempt.objects.filter(
         user=request.user,
@@ -181,7 +179,13 @@ def question_view(request, test_id, q_index=0):
     ).count()
     all_questions_answered = (answered_questions == total_questions)
 
-    if q_index >= len(questions):
+    # Compute test end time and remaining duration
+    end_time = test.created_at + timedelta(minutes=test.duration_minutes)
+    now = timezone.now()
+    time_remaining = end_time - now
+    test_active = (time_remaining.total_seconds() > 0) and (q_index < total_questions)
+
+    if q_index >= total_questions:
         messages.info(request, "Test completed! Calculating your results...")
         return redirect('display_test_result', test_id=test.id)
 
@@ -193,7 +197,7 @@ def question_view(request, test_id, q_index=0):
     if request.method == 'POST':
         is_review = request.POST.get('is_review') == '1'
         selected_option_value = request.POST.get('option')
-        
+
         if not is_review and selected_option_value is None:
             messages.error(request, "Please select an option before submitting.")
             current_attempt = UserAttempt.objects.filter(user=request.user, question=question).first()
@@ -206,12 +210,14 @@ def question_view(request, test_id, q_index=0):
                 'test': test,
                 'question': question,
                 'q_index': q_index,
-                'total': len(questions),
+                'total': total_questions,
                 'submitted': submitted,
                 'is_correct': is_correct,
                 'solution': question.solution,
                 'selected': selected_option_value,
                 'all_questions_answered': all_questions_answered,
+                'test_active': test_active,
+                'time_remaining': time_remaining,
             })
 
         if not is_review:
@@ -229,17 +235,18 @@ def question_view(request, test_id, q_index=0):
                     'test': test,
                     'question': question,
                     'q_index': q_index,
-                    'total': len(questions),
+                    'total': total_questions,
                     'submitted': submitted,
                     'is_correct': is_correct,
                     'solution': question.solution,
                     'selected': selected_option_value,
                     'all_questions_answered': all_questions_answered,
+                    'test_active': test_active,
+                    'time_remaining': time_remaining,
                 })
 
             is_correct = (selected_option_value == question.correct_option)
 
-            # Create or update UserAttempt for the current question
             UserAttempt.objects.update_or_create(
                 user=request.user,
                 question=question,
@@ -256,7 +263,6 @@ def question_view(request, test_id, q_index=0):
             else:
                 messages.error(request, f"Incorrect. The correct answer was option {question.correct_option}.")
         else:
-            # Mark question for review without submitting an answer
             UserAttempt.objects.update_or_create(
                 user=request.user,
                 question=question,
@@ -268,13 +274,11 @@ def question_view(request, test_id, q_index=0):
             )
             messages.info(request, "Question marked for review.")
 
-        # Redirect to the next question or results page
-        if q_index + 1 < len(questions):
+        if q_index + 1 < total_questions:
             return redirect('question_view', test_id=test.id, q_index=q_index + 1)
         else:
             return redirect('display_test_result', test_id=test.id)
 
-    # GET request: Render the current question
     current_attempt = UserAttempt.objects.filter(
         user=request.user,
         question=question
@@ -290,12 +294,14 @@ def question_view(request, test_id, q_index=0):
         'test': test,
         'question': question,
         'q_index': q_index,
-        'total': len(questions),
+        'total': total_questions,
         'submitted': submitted,
         'is_correct': is_correct,
         'solution': question.solution,
         'selected': selected_option_value,
         'all_questions_answered': all_questions_answered,
+        'test_active': test_active,
+        'time_remaining': time_remaining,
     })
 
 

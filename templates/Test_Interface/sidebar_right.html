@@ -1,41 +1,43 @@
 <aside>
     {% csrf_token %}
     <h3 style="margin-top: 0; color: var(--text-primary); font-weight: 600; margin-bottom: 20px;">
-        <i class="bi bi-bar-chart-fill me-2"></i>Test Progress
+        <i class="bi bi-bar-chart-fill me-2"></i>Test Panel
     </h3>
-    <div style="margin-bottom: 15px; padding: 10px; background-color: var(--bg-input); border-radius: 6px;">
-        <strong style="color: var(--text-primary);">Question:</strong> <span style="color: var(--text-secondary);">5/20</span>
-    </div>
-    <div style="margin-bottom: 15px; padding: 10px; background-color: var(--bg-input); border-radius: 6px;">
-        <strong style="color: var(--text-primary);">Time Remaining:</strong> <span style="color: var(--text-secondary);">24:35</span>
-    </div>
-    <div style="margin-bottom: 25px; padding: 10px; background-color: var(--bg-input); border-radius: 6px;">
-        <strong style="color: var(--text-primary);">Current Score:</strong> <span style="color: var(--text-secondary);">3/4</span>
-    </div>
-    <button class="btn-custom-primary" style="width: 100%;">
-        <i class="bi bi-flag-fill me-2"></i> Finish Test
-    </button>
+
+    {% if test_active %}
+        <div style="margin-bottom: 15px; padding: 10px; background-color: var(--bg-input); border-radius: 6px;">
+            <strong style="color: var(--text-primary);">Question:</strong> 
+            <span style="color: var(--text-secondary);">{{ q_index|add:1 }}/{{ total }}</span>
+        </div>
+
+        <div style="margin-bottom: 15px; padding: 10px; background-color: var(--bg-input); border-radius: 6px;">
+            <strong style="color: var(--text-primary);">Time Remaining:</strong> 
+            <span style="color: var(--text-secondary);" id="countdown">
+                {{ time_remaining.seconds|divisibleby:60 }} min
+            </span>
+        </div>
+
+        <div style="margin-bottom: 25px; padding: 10px; background-color: var(--bg-input); border-radius: 6px;">
+            <strong style="color: var(--text-primary);">Current Score:</strong> 
+            <span style="color: var(--text-secondary);">--/--</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(35px, 1fr)); gap: 8px; margin-bottom: 20px;">
+            {% for i in total|add:""|make_list %}
+                <div style="padding: 10px; background-color: {% if forloop.counter0 == q_index %}var(--accent-primary){% else %}var(--bg-input){% endif %}; border-radius: 5px; text-align: center; color: var(--text-primary); font-weight: 500;">
+                    {{ forloop.counter }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <button class="btn-custom-primary" style="width: 100%;">
+            <i class="bi bi-flag-fill me-2"></i> Finish Test
+        </button>
+    {% else %}
+        <div style="margin-top: 30px; padding: 20px; background-color: var(--bg-input); border-left: 4px solid var(--accent-primary); border-radius: 8px;">
+            <p style="font-style: italic; color: var(--text-secondary);">
+                "Discipline is the bridge between goals and accomplishment."
+            </p>
+        </div>
+    {% endif %}
 </aside>
-
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const questionForm = document.getElementById('questionForm');
-        const submitBtn = questionForm.querySelector('button[type="submit"]');
-        const submitBtnText = document.getElementById('submitBtnText');
-        const submitSpinner = document.getElementById('submitSpinner');
-
-        if (submitBtn) {
-            submitBtn.addEventListener('click', function() {
-                // Only show spinner if form is valid (browser's HTML5 validation)
-                if (questionForm.checkValidity()) {
-                    submitBtn.disabled = true;
-                    submitBtnText.textContent = 'Submitting...';
-                    submitSpinner.style.display = 'inline-block';
-                }
-            });
-        }
-    });
-</script>
-{% endblock %}
