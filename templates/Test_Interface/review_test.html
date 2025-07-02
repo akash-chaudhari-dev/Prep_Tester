@@ -1,7 +1,7 @@
 {% extends 'Test_Interface/base.html' %}
 
 {% block title %}Review Test | MGM JNEC PYQ Portal{% endblock %}
-
+{% load custom_filters %}
 {% block content %}
 <div class="content-box">
     <h2 style="color: var(--text-primary); margin-bottom: 20px; font-weight: 600;">
@@ -19,7 +19,8 @@
                 <div class="option-label 
                     {% if qa.attempt and qa.attempt.selected_option|stringformat:'s' == idx %}selected-{% if qa.is_correct %}correct{% else %}wrong{% endif %}{% endif %} 
                     {% if qa.question.correct_option|stringformat:'s' == idx %}correct-answer{% endif %}">
-                    {{ qa.question|get_option:idx }}
+                    option {{idx}}: {{ qa.question|get_option:idx }}
+
                 </div>
             {% endfor %}
         </div>
@@ -35,13 +36,15 @@
     </div>
     {% endfor %}
     
-    <div class="action-buttons" style="text-align: center; margin-top: 30px;">
-        <a href="{% url 'display_test_result' test.id %}" class="btn-custom-primary">
-            <i class="bi bi-arrow-left-circle-fill me-2"></i> Back to Results
-        </a>
-        <a href="{% url 'dashboard' %}" class="btn-custom-outline">
-            <i class="bi bi-house-door-fill me-2"></i> Dashboard
-        </a>
-    </div>
+    <div class="action-buttons" style="text-align: center; margin-top: 30px; display: flex; justify-content: center; gap: 15px;">
+    <a href="{% url 'display_test_result' test.id %}" class="btn-custom-primary">
+        <i class="bi bi-arrow-left-circle-fill me-2"></i> Back to Results
+    </a>
+
+    <a href="{% url 'dashboard' %}" class="btn-custom-outline">
+        <i class="bi bi-house-door-fill me-2"></i> Dashboard
+    </a>
+</div>
+
 </div>
 {% endblock %}
