@@ -38,8 +38,8 @@
     }
     .options-list input[type="radio"] {
         margin-right: 15px;
-        transform: scale(1.3); /* Larger radio buttons */
-        accent-color: var(--accent-primary); /* Custom color for checked radio */
+        transform: scale(1.3);
+        accent-color: var(--accent-primary);
     }
 
     /* Styles for selected/correct/incorrect options after submission */
@@ -97,17 +97,27 @@
         color: var(--text-primary);
     }
     .navigation-buttons {
-        margin-top: 25px;
-        display: flex;
-        justify-content: space-between;
-        gap: 15px;
-    }
-    .navigation-buttons .btn-custom-primary,
-    .navigation-buttons .btn-custom-outline {
-        flex: 1; /* Make buttons take equal width */
-    }
+    margin-top: 25px;
+    display: flex;
+    justify-content: flex-end; /* Push buttons to the right */
+    gap: 10px;
+    padding-right: 10px; /* 10px space from right edge */
+}
+}
+
+.navigation-buttons a.btn-custom-outline,
+.navigation-buttons a.btn-custom-primary {
+    flex: 0 0 120px; /* Fixed width of 120px for both buttons */
+    text-align: center;
+    padding: 8px 10px;
+    font-size: 0.95rem;
+    padding-right: 10px; /* 10px space from right edge */
+
+}
+
 </style>
 
+{% load custom_filters %}
 <div class="content-box">
     <h2 style="color: var(--text-primary); margin-bottom: 20px; font-weight: 600;">
         <i class="bi bi-journal-check me-2"></i> {{ test.name }} - Question {{ q_index|add:1 }} of {{ total }}
@@ -117,78 +127,74 @@
     <div class="question-card">
         <div class="question-text">{{ question.text }}</div>
 
-        <form method="post" class="options-list" id="questionForm">
-            {% csrf_token %} <label class="{% if submitted and selected == 1 and is_correct %}selected-correct{% elif submitted and selected == 1 and not is_correct %}selected-wrong{% elif submitted and question.correct_option == 1 %}correct-answer{% endif %} {% if submitted %}disabled{% endif %}">
-                <input type="radio" name="option" value="1" {% if selected == 1 %}checked{% endif %} {% if submitted %}disabled{% endif %} required> {{ question.option1 }}
-            </label>
-            <label class="{% if submitted and selected == 2 and is_correct %}selected-correct{% elif submitted and selected == 2 and not is_correct %}selected-wrong{% elif submitted and question.correct_option == 2 %}correct-answer{% endif %} {% if submitted %}disabled{% endif %}">
-                <input type="radio" name="option" value="2" {% if selected == 2 %}checked{% endif %} {% if submitted %}disabled{% endif %}> {{ question.option2 }}
-            </label>
-            <label class="{% if submitted and selected == 3 and is_correct %}selected-correct{% elif submitted and selected == 3 and not is_correct %}selected-wrong{% elif submitted and selected == 3 and not is_correct %}selected-wrong{% elif submitted and question.correct_option == 3 %}correct-answer{% endif %} {% if submitted %}disabled{% endif %}">
-                <input type="radio" name="option" value="3" {% if selected == 3 %}checked{% endif %} {% if submitted %}disabled{% endif %}> {{ question.option3 }}
-            </label>
-            <label class="{% if submitted and selected == 4 and is_correct %}selected-correct{% elif submitted and selected == 4 and not is_correct %}selected-wrong{% elif submitted and question.correct_option == 4 %}correct-answer{% endif %} {% if submitted %}disabled{% endif %}">
-                <input type="radio" name="option" value="4" {% if selected == 4 %}checked{% endif %} {% if submitted %}disabled{% endif %}> {{ question.option4 }}
-            </label>
+        <form method="post" id="questionForm" class="options-list">
+            {% csrf_token %}
+
+            {% for idx in "1234" %}
+                <label class="option-label {% if submitted and selected|stringformat:'s' == idx %}selected-{% if is_correct %}correct{% else %}wrong{% endif %}{% endif %} {% if submitted and question.correct_option|stringformat:'s' == idx %}correct-answer{% endif %}" data-idx="{{ idx }}">
+                    <input type="radio" name="option" value="{{ idx }}" {% if submitted %}disabled{% endif %} {% if selected|stringformat:'s' == idx %}checked{% endif %}>
+                    {{ question|get_option:idx }}
+                </label>
+            {% endfor %}
 
             {% if not submitted %}
-                <button type="submit" class="btn-custom-primary mt-4" style="width: 100%;">
-                    <span id="submitBtnText"><i class="bi bi-check-circle-fill me-2"></i> Submit Answer</span>
-                    <span id="submitSpinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
-                </button>
-            {% endif %}
-        </form>
-
-        {% if submitted %}
-            <div class="feedback-box {% if is_correct %}correct{% else %}wrong{% endif %}">
-                {% if is_correct %}
-                    <i class="bi bi-check-circle-fill"></i> <span>Correct Answer!</span>
-                {% else %}
-                    <i class="bi bi-x-circle-fill"></i> <span>Incorrect.</span>
-                {% endif %}
-            </div>
-            {% if solution %}
-                <div class="solution-box">
-                    <strong>Solution:</strong> {{ solution }}
+            <button type="submit" id="submitBtn" class="btn-custom-primary mt-4" style="width: 40%; display: block; margin: 0 auto;">
+                <i class="bi bi-check-circle-fill me-2"></i> Check Answer
+            </button>
+            {% else %}
+                <div class="feedback-box {% if is_correct %}correct{% else %}wrong{% endif %}">
+                    <i class="bi bi-{% if is_correct %}check{% else %}x{% endif %}-circle-fill"></i>
+                    {% if is_correct %}Correct Answer!{% else %}Incorrect Answer.{% endif %}
                 </div>
             {% endif %}
 
-            <div class="navigation-buttons">
-                {% if q_index|add:1 < total %}
-                    <a href="{% url 'question_view' test.id q_index|add:1 %}" class="btn-custom-primary">
-                        <i class="bi bi-arrow-right-circle-fill me-2"></i> Next Question
-                    </a>
-                {% else %}
-                    <a href="{% url 'display_test_result' test.id %}" class="btn-custom-primary">
-                        <i class="bi bi-flag-fill me-2"></i> Finish Test
-                    </a>
-                {% endif %}
-            </div>
+            <input type="hidden" name="selected_option" id="selectedOptionHidden">
+        </form>
+
+        {% if submitted %}
+        <div class="solution-box">
+            <strong>Solution:</strong> {{ question.solution }}
+        </div>
         {% endif %}
+
+        <div class="navigation-buttons">
+            {% if q_index > 0 %}
+                <a href="{% url 'question_view' test.id q_index|add:-1 %}" class="btn-custom-outline">
+                    <i class="bi bi-arrow-left-circle-fill me-2"></i> Previous
+                </a>
+            {% endif %}
+            
+            {% if q_index|add:1 < total %}
+                <a href="{% url 'question_view' test.id q_index|add:1 %}" class="btn-custom-primary">
+                    <i class="bi bi-arrow-right-circle-fill me-2"></i> Next
+                </a>
+            {% else %}
+                <a href="{% url 'display_test_result' test.id %}" class="btn-custom-primary">
+                    <i class="bi bi-flag-fill me-2"></i> Finish Test
+                </a>
+            {% endif %}
+        </div>
     </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const questionForm = document.getElementById('questionForm');
-        const submitBtn = questionForm.querySelector('button[type="submit"]');
-        const submitBtnText = document.getElementById('submitBtnText');
-        const submitSpinner = document.getElementById('submitSpinner');
-
+        const form = document.getElementById('questionForm');
+        const submitBtn = document.getElementById('submitBtn');
+        
         if (submitBtn) {
-            submitBtn.addEventListener('click', function() {
-                // Only show spinner if form is valid (browser's HTML5 validation)
-                if (questionForm.checkValidity()) {
-                    submitBtn.disabled = true;
-                    submitBtnText.textContent = 'Submitting...';
-                    submitSpinner.style.display = 'inline-block';
+            submitBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const selected = document.querySelector('input[name="option"]:checked');
+                if (!selected) {
+                    alert('Please select an option!');
+                    return;
                 }
+                form.submit();
             });
         }
     });
 </script>
 {% endblock %}
-

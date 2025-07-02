@@ -79,6 +79,7 @@ class UserAttempt(models.Model):
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='attempts')
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    reviewed = models.BooleanField(default=False)
     selected_option = models.IntegerField(
         choices=[(1, 'Option 1'), (2, 'Option 2'), (3, 'Option 3'), (4, 'Option 4')]
     )

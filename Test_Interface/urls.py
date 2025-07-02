@@ -13,6 +13,8 @@ urlpatterns = [
     path('', views.dashboard_view, name='dashboard'), # This is now the main entry point after auth
     path('branch-selection/', views.branch_selection_view, name='branch_selection'),
 
+    path('test/<int:test_id>/review/', views.review_test, name='review_test'),
+
     # Test related URLs
     path('test/start/<int:test_id>/', views.start_test, name='start_test'),
     path('test/<int:test_id>/q/<int:q_index>/', views.question_view, name='question_view'),

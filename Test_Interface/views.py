@@ -171,11 +171,17 @@ def question_view(request, test_id, q_index=0):
     """
     test = get_object_or_404(Test, id=test_id)
     subject = test.subject
-    questions = list(test.questions.all().order_by('id')) # Ensure consistent order
+    questions = list(test.questions.all().order_by('id'))
+    
+    # Check if all questions have been answered
+    total_questions = len(questions)
+    answered_questions = UserAttempt.objects.filter(
+        user=request.user,
+        question__test=test
+    ).count()
+    all_questions_answered = (answered_questions == total_questions)
 
-    # Handle scenario where q_index is out of bounds (e.g., direct access or test finished)
     if q_index >= len(questions):
-        # If all questions are done, redirect to the dedicated results page
         messages.info(request, "Test completed! Calculating your results...")
         return redirect('display_test_result', test_id=test.id)
 
@@ -185,10 +191,11 @@ def question_view(request, test_id, q_index=0):
     selected_option_value = None
 
     if request.method == 'POST':
+        is_review = request.POST.get('is_review') == '1'
         selected_option_value = request.POST.get('option')
-        if selected_option_value is None:
+        
+        if not is_review and selected_option_value is None:
             messages.error(request, "Please select an option before submitting.")
-            # Re-render the current question with an error, preserving state
             current_attempt = UserAttempt.objects.filter(user=request.user, question=question).first()
             if current_attempt:
                 submitted = True
@@ -204,46 +211,62 @@ def question_view(request, test_id, q_index=0):
                 'is_correct': is_correct,
                 'solution': question.solution,
                 'selected': selected_option_value,
+                'all_questions_answered': all_questions_answered,
             })
 
-        try:
-            selected_option_value = int(selected_option_value)
-        except ValueError:
-            messages.error(request, "Invalid option selected.")
-            current_attempt = UserAttempt.objects.filter(user=request.user, question=question).first()
-            if current_attempt:
-                submitted = True
-                is_correct = current_attempt.is_correct
-                selected_option_value = current_attempt.selected_option
-            return render(request, 'Test_Interface/question.html', {
-                'subject': subject,
-                'test': test,
-                'question': question,
-                'q_index': q_index,
-                'total': len(questions),
-                'submitted': submitted,
-                'is_correct': is_correct,
-                'solution': question.solution,
-                'selected': selected_option_value,
-            })
+        if not is_review:
+            try:
+                selected_option_value = int(selected_option_value)
+            except ValueError:
+                messages.error(request, "Invalid option selected.")
+                current_attempt = UserAttempt.objects.filter(user=request.user, question=question).first()
+                if current_attempt:
+                    submitted = True
+                    is_correct = current_attempt.is_correct
+                    selected_option_value = current_attempt.selected_option
+                return render(request, 'Test_Interface/question.html', {
+                    'subject': subject,
+                    'test': test,
+                    'question': question,
+                    'q_index': q_index,
+                    'total': len(questions),
+                    'submitted': submitted,
+                    'is_correct': is_correct,
+                    'solution': question.solution,
+                    'selected': selected_option_value,
+                    'all_questions_answered': all_questions_answered,
+                })
 
-        is_correct = (selected_option_value == question.correct_option)
+            is_correct = (selected_option_value == question.correct_option)
 
-        # Create or update UserAttempt for the current question
-        UserAttempt.objects.update_or_create(
-            user=request.user,
-            question=question,
-            defaults={
-                'selected_option': selected_option_value,
-                'is_correct': is_correct
-            }
-        )
-        submitted = True # Mark as submitted for immediate feedback display
+            # Create or update UserAttempt for the current question
+            UserAttempt.objects.update_or_create(
+                user=request.user,
+                question=question,
+                defaults={
+                    'selected_option': selected_option_value,
+                    'is_correct': is_correct,
+                    'reviewed': False
+                }
+            )
+            submitted = True
 
-        if is_correct:
-            messages.success(request, "Correct answer!")
+            if is_correct:
+                messages.success(request, "Correct answer!")
+            else:
+                messages.error(request, f"Incorrect. The correct answer was option {question.correct_option}.")
         else:
-            messages.error(request, f"Incorrect. The correct answer was option {question.correct_option}.")
+            # Mark question for review without submitting an answer
+            UserAttempt.objects.update_or_create(
+                user=request.user,
+                question=question,
+                defaults={
+                    'selected_option': None,
+                    'is_correct': False,
+                    'reviewed': True
+                }
+            )
+            messages.info(request, "Question marked for review.")
 
         # Redirect to the next question or results page
         if q_index + 1 < len(questions):
@@ -252,7 +275,6 @@ def question_view(request, test_id, q_index=0):
             return redirect('display_test_result', test_id=test.id)
 
     # GET request: Render the current question
-    # Check if the user has already attempted this specific question in the current test session
     current_attempt = UserAttempt.objects.filter(
         user=request.user,
         question=question
@@ -269,11 +291,13 @@ def question_view(request, test_id, q_index=0):
         'question': question,
         'q_index': q_index,
         'total': len(questions),
-        'submitted': submitted, # True if previously attempted, False otherwise
+        'submitted': submitted,
         'is_correct': is_correct,
         'solution': question.solution,
-        'selected': selected_option_value, # Pass the selected option back to the template
+        'selected': selected_option_value,
+        'all_questions_answered': all_questions_answered,
     })
+
 
 @login_required(login_url='/login/')
 def display_test_result(request, test_id):
@@ -284,17 +308,11 @@ def display_test_result(request, test_id):
     subject = test.subject
 
     user_attempts = UserAttempt.objects.filter(user=request.user, question__test=test)
-    total_questions_in_test = test.questions.count() # Total questions defined for the test
-    total_questions_attempted = user_attempts.count() # Questions the user actually submitted an answer for
+    total_questions_in_test = test.questions.count()
+    total_questions_attempted = user_attempts.count()
     correct_answers = user_attempts.filter(is_correct=True).count()
 
-    # Calculate percentage based on total questions in the test (or attempted, depending on preference)
-    # Using total_questions_in_test for a more "exam-like" score
     percent_correct = int((correct_answers / total_questions_in_test) * 100) if total_questions_in_test else 0
-
-    # Optional: Clear attempts after viewing result if you don't want to keep history
-    # UserAttempt.objects.filter(user=request.user, question__test=test).delete()
-    # messages.info(request, "Your test attempts for this test have been cleared.")
 
     return render(request, 'Test_Interface/result.html', {
         'subject': subject,
@@ -303,6 +321,39 @@ def display_test_result(request, test_id):
         'total_attempted': total_questions_attempted,
         'correct': correct_answers,
         'percent': percent_correct,
+    })
+
+@login_required(login_url='/login/')
+def review_test(request, test_id):
+    """
+    Allows reviewing a completed test by showing all questions with answers
+    """
+    test = get_object_or_404(Test, id=test_id)
+    questions = test.questions.all().order_by('id')
+    
+    # Get all user attempts for this test
+    user_attempts = UserAttempt.objects.filter(
+        user=request.user,
+        question__in=questions
+    ).select_related('question')
+    
+    # Create a dictionary of question_id to attempt for easy lookup
+    attempts_dict = {attempt.question_id: attempt for attempt in user_attempts}
+    
+    # Prepare questions with attempt data
+    questions_with_attempts = []
+    for question in questions:
+        attempt = attempts_dict.get(question.id)
+        questions_with_attempts.append({
+            'question': question,
+            'attempt': attempt,
+            'is_correct': attempt.is_correct if attempt else False,
+            'selected_option': attempt.selected_option if attempt else None
+        })
+    
+    return render(request, 'Test_Interface/review_test.html', {
+        'test': test,
+        'questions_with_attempts': questions_with_attempts,
     })
 
 from django.db.models import Max

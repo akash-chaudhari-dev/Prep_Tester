@@ -20,7 +20,7 @@
     .result-summary-card .score-display {
         font-size: 3.5rem;
         font-weight: bold;
-        color: var(--success-color); /* Green for score */
+        color: var(--success-color);
         margin-bottom: 20px;
     }
     .result-summary-card p {
@@ -36,7 +36,7 @@
         justify-content: center;
         gap: 30px;
         margin-top: 20px;
-        flex-wrap: wrap; /* Allow wrapping on small screens */
+        flex-wrap: wrap;
     }
     .result-summary-card .score-item {
         background-color: var(--bg-input);
@@ -55,8 +55,11 @@
         color: var(--text-secondary);
     }
     .action-buttons {
-        text-align: center;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
         margin-top: 30px;
+        flex-wrap: wrap;
     }
     .action-buttons .btn-custom-primary {
         padding: 12px 30px;
@@ -88,36 +91,15 @@
     </div>
 
     <div class="action-buttons">
-        <a href="{% url 'dashboard' %}" class="btn-custom-primary me-3">
-            <i class="bi bi-house-door-fill me-2"></i> Go to Dashboard
+        <a href="{% url 'review_test' test.id %}" class="btn-custom-primary">
+            <i class="bi bi-eye-fill me-2"></i> Review Complete Test
+        </a>
+        <a href="{% url 'dashboard' %}" class="btn-custom-outline">
+            <i class="bi bi-house-door-fill me-2"></i> Dashboard
         </a>
         <a href="{% url 'user_history' %}" class="btn-custom-outline">
-            <i class="bi bi-clock-history me-2"></i> View Test History
+            <i class="bi bi-clock-history me-2"></i> Test History
         </a>
     </div>
 </div>
 {% endblock %}
-
-
-{% block extra_js %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const questionForm = document.getElementById('questionForm');
-        const submitBtn = questionForm.querySelector('button[type="submit"]');
-        const submitBtnText = document.getElementById('submitBtnText');
-        const submitSpinner = document.getElementById('submitSpinner');
-
-        if (submitBtn) {
-            submitBtn.addEventListener('click', function() {
-                // Only show spinner if form is valid (browser's HTML5 validation)
-                if (questionForm.checkValidity()) {
-                    submitBtn.disabled = true;
-                    submitBtnText.textContent = 'Submitting...';
-                    submitSpinner.style.display = 'inline-block';
-                }
-            });
-        }
-    });
-</script>
-{% endblock %}
-
