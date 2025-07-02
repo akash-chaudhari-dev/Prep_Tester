@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MGM JNEC | Login / Sign Up</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet"
+        xintegrity="sha384-LN+7fdVzj6u52u30Kp6M/trliBMCMKTyK833zpbD+pXdCLuTusPj697FH4R/5mcr" crossorigin="anonymous">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        /* Custom CSS Variables for Dark Theme */
+        :root {
+            --bg-dark: #1a1a1a; /* Deep dark background */
+            --bg-card: #2c2c2c; /* Softer dark for form container */
+            --bg-input: #3d3d3d; /* Input fields background */
+            --border-input: #555555; /* Input borders */
+            --text-primary: #f1f1f1; /* Light text for readability */
+            --text-secondary: #aaaaaa; /* Secondary text, placeholders */
+            --accent-primary: #4f46e5; /* Deep indigo for primary actions */
+            --accent-hover: #3f35d1; /* Darker indigo on hover */
+            --error-color: #dc3545; /* Red for errors */
+            --success-color: #28a745; /* Green for success */
+            --info-color: #17a2b8; /* Info blue */
+        }
+
+        /* Define RGB values for alerts to use with rgba() */
+        :root {
+            --error-color-rgb: 220, 53, 69;
+            --success-color-rgb: 40, 167, 69;
+            --info-color-rgb: 23, 162, 184;
+        }
+
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: var(--bg-dark);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-primary);
+            overflow: hidden; /* Prevent scrollbar from background image */
+        }
+
+        /* Main container for the whole login/signup block */
+        .auth-wrapper {
+            width: 100%;
+            max-width: 900px; /* Max width for the split layout */
+            margin: 20px; /* Margin on smaller screens */
+            border-radius: 12px; /* Overall rounded corners for the block */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* Enhanced shadow */
+            overflow: hidden; /* Ensures rounded corners are respected */
+            display: flex; /* For the row inside */
+        }
+
+        /* Left side with illustration (desktop only) */
+        .auth-illustration {
+            background-image: url('https://wallpapercave.com/wp/wp12517737.jpg'); /* Placeholder image */
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column; /* Stack text vertically */
+            justify-content: center;
+            align-items: center;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            /* Hide on small screens, show on large */
+            display: none;
+        }
+        .auth-illustration h1, .auth-illustration p {
+            background-color: rgba(0, 0, 0, 0.3); /* Semi-transparent background for text */
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        /* Show illustration on large screens */
+        @media (min-width: 992px) { /* Corresponds to Bootstrap's lg breakpoint */
+            .auth-illustration {
+                display: flex;
+                flex: 1; /* Takes up half the space */
+            }
+            .auth-form-container {
+                flex: 1; /* Takes up half the space */
+            }
+        }
+
+        /* Right side with form */
+        .auth-form-container {
+            background-color: var(--bg-card);
+            padding: 2.5rem;
+            width: 100%; /* Default to full width on small screens */
+            position: relative; /* For alert positioning */
+        }
+
+        /* Responsive height for form container on desktop */
+        @media (min-width: 992px) {
+            .auth-form-container {
+                max-height: 90vh; /* Max height relative to viewport height */
+                overflow-y: auto; /* Enable vertical scrolling if content overflows */
+                padding-top: 2.5rem; /* Ensure padding is consistent */
+                padding-bottom: 2.5rem;
+            }
+        }
+
+        /* Form Heading */
+        .auth-form-container h2 {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            font-size: 1.8rem;
+        }
+
+        /* Tabs for Login/Signup */
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-input);
+        }
+
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 0.75rem 0;
+            cursor: pointer;
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-bottom: 2px solid transparent; /* For active indicator */
+        }
+
+        .auth-tab.active {
+            color: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .auth-tab:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Form Floating Inputs */
+        .form-floating > .form-control,
+        .form-floating > .form-select {
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-input);
+            color: var(--text-primary);
+            border-radius: 6px; /* Rounded corners for inputs */
+            padding: 1rem 1rem; /* Adjust padding for better look with label */
+        }
+        .form-floating > label {
+            color: var(--text-secondary);
+            padding: 1rem 1rem; /* Match input padding */
+        }
+        .form-floating > .form-control:focus,
+        .form-floating > .form-select:focus {
+            background-color: var(--bg-input);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 0.25rem rgba(79, 70, 229, 0.25); /* Accent color glow */
+            color: var(--text-primary);
+        }
+        /* Adjust placeholder color for dark theme */
+        .form-control::placeholder {
+            color: var(--text-secondary);
+            opacity: 0.7;
+        }
+        .form-control:focus::placeholder {
+            opacity: 0; /* Hide placeholder on focus for floating labels */
+        }
+
+        /* Password Toggle Icon */
+        .password-toggle {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--text-secondary);
+            z-index: 5; /* Ensure it's above the input */
+            font-size: 1.1rem;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--accent-primary);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            border-radius: 6px; /* Rounded corners for buttons */
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+        .btn-primary:hover {
+            background-color: var(--accent-hover);
+            transform: translateY(-1px); /* Slight lift effect */
+        }
+        .btn-outline-light {
+            color: var(--text-primary);
+            border-color: var(--border-input);
+            background-color: transparent;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        .btn-outline-light:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        /* Divider "or continue with" */
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        .divider::before, .divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid var(--border-input);
+        }
+        .divider::before {
+            margin-right: 1rem;
+        }
+        .divider::after {
+            margin-left: 1rem;
+        }
+
+        /* Auth Footer (links) */
+        .auth-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .auth-footer a {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease, text-decoration 0.2s ease;
+        }
+        .auth-footer a:hover {
+            color: var(--accent-hover);
+            text-decoration: underline;
+        }
+
+        /* Alerts */
+        .alert-container {
+            position: absolute; /* Position relative to .auth-form-container */
+            top: 15px; /* 15px from the top of the form container */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%; /* Adjust width as needed */
+            max-width: 350px; /* Max width for alert */
+            z-index: 100; /* Ensure it's on top */
+        }
+
+        .alert {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        .alert-danger {
+            background-color: rgba(var(--error-color-rgb), 0.15);
+            border: 1px solid rgba(var(--error-color-rgb), 0.3);
+            color: var(--error-color);
+        }
+        .alert-success {
+            background-color: rgba(var(--success-color-rgb), 0.15);
+            border: 1px solid rgba(var(--success-color-rgb), 0.3);
+            color: var(--success-color);
+        }
+        .alert-info {
+            background-color: rgba(var(--info-color-rgb), 0.15);
+            border: 1px solid rgba(var(--info-color-rgb), 0.3);
+            color: #8cdfe8; /* Lighter shade of info color for text */
+        }
+
+        /* Spinner for loading state */
+        .spinner-border {
+            width: 1.25rem;
+            height: 1.25rem;
+            border-width: 0.2em;
+            vertical-align: -0.125em; /* Align with text */
+        }
+
+        /* Specific adjustments for signup form to make it more compact */
+        #signupForm .form-floating.mb-3 {
+            margin-bottom: 1rem !important; /* Reduce margin for more compact fields */
+        }
+        #signupForm .form-floating.mb-4 {
+             margin-bottom: 1.5rem !important; /* Keep a bit more space for last password field */
+        }
+        #signupForm small.form-text {
+            margin-top: -0.5rem; /* Pull up small text closer to input */
+            margin-bottom: 1rem !important;
+        }
+        #signupForm .g-recaptcha {
+            margin-bottom: 1.5rem !important; /* Adjust reCAPTCHA margin */
+            transform: scale(0.9); /* Slightly scale down reCAPTCHA if it's too big */
+            transform-origin: 0 0; /* Scale from top-left */
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-wrapper">
+        <!-- Left side: Illustration (visible on large screens) -->
+        <div class="auth-illustration col-lg-6">
+            <div>
+                <h1 class="display-5 fw-bold mb-3 text-white">MGM JNEC</h1>
+                <p class="lead fw-bold mb-3 text-white">Your one-stop portal for Previous Year Question Papers.</p>
+                <p class="text-muted small">Learn, Practice, Succeed.</p>
+            </div>
+        </div>
+
+        <!-- Right side: Login/Signup Form -->
+        <div class="auth-form-container col-lg-6">
+            <!-- Django Messages / Form Errors Display -->
+            <div id="djangoAlerts" style="display: none;">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} d-flex align-items-center fade show mb-3" role="alert">
+                            {% if 'success' in message.tags %}
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                            {% elif 'error' in message.tags or 'danger' in message.tags %}
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            {% elif 'info' in message.tags %}
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                            {% else %}
+                                <i class="bi bi-bell-fill me-2"></i>
+                            {% endif %}
+                            <div>{{ message }}</div>
+                            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if form.errors %}
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <div class="alert alert-danger d-flex align-items-center fade show mb-3" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <div>{{ field.label }}: {{ error }}</div>
+                                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endfor %}
+                    {% if form.non_field_errors %}
+                        {% for error in form.non_field_errors %}
+                            <div class="alert alert-danger d-flex align-items-center fade show mb-3" role="alert">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                <div>{{ error }}</div>
+                                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endif %}
+            </div>
+
+            <!-- Alert Container (dynamically populated by JS for client-side messages) -->
+            <div id="alertContainer" class="alert-container" style="display: none;">
+                <!-- Alerts will be injected here by JS -->
+            </div>
+
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="loginTab">Login</div>
+                <div class="auth-tab" id="signupTab">Sign Up</div>
+            </div>
+            {% csrf_token %}
+            <!-- Login Form -->
+            <div id="loginForm">
+                <h2 class="mb-4">Welcome Back!</h2>
+                <form id="loginFormElement" method="post" action="{% url 'login' %}">
+                    {% csrf_token %}
+
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="loginUsername" name="username" placeholder="Username" required>
+                        <label for="loginUsername">Roll Number</label>
+                    </div>
+
+                    <div class="form-floating mb-3 position-relative">
+                        <input type="password" class="form-control" id="loginPassword" name="password" placeholder="Password" required>
+                        <label for="loginPassword">Password</label>
+                        <i class="bi bi-eye-slash password-toggle" id="toggleLoginPassword"></i>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="rememberMe" name="remember">
+                            <label class="form-check-label text-secondary" for="rememberMe">Remember me</label>
+                        </div>
+                        <a href="/forgot-password/" class="text-decoration-none" style="color: var(--accent-primary);">Forgot password?</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 mb-3" id="loginBtn">
+                        <span id="loginBtnText">Login</span>
+                        <span id="loginSpinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                    </button>
+
+                    <div class="divider">or</div>
+
+                    <button type="button" class="btn btn-outline-light w-100">
+                        <i class="bi bi-google me-2"></i> Continue with Google
+                    </button>
+                </form>
+                <div class="auth-footer">
+                    Don't have an account? <a href="#" id="switchToSignup">Sign up</a>
+                </div>
+            </div>
+            {% csrf_token %}
+            <!-- Signup Form (initially hidden) -->
+            <div id="signupForm" style="display: none;">
+                <h2 class="mb-4">Create Account</h2>
+                <form id="signupFormElement" method="post" action="{% url 'signup' %}">
+                    {% csrf_token %}
+
+                    <div class="form-floating mb-3">
+                        <input type="text" class="form-control" id="signupUsername" name="username" placeholder="Username" required>
+                        <label for="signupUsername">Roll Number</label>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input type="email" class="form-control" id="signupEmail" name="email" placeholder="Email" required>
+                        <label for="signupEmail">Email</label>
+                    </div>
+
+                    <div class="form-floating mb-3 position-relative">
+                        <input type="password" class="form-control" id="signupPassword" name="password1" placeholder="Password" required>
+                        <label for="signupPassword">Password</label>
+                        <i class="bi bi-eye-slash password-toggle" id="toggleSignupPassword"></i>
+                    </div>
+                    <small class="form-text text-secondary d-block mb-3">Minimum 8 characters with letters and numbers</small>
+
+                    <div class="form-floating mb-4 position-relative">
+                        <input type="password" class="form-control" id="signupPassword2" name="password2" placeholder="Confirm Password" required>
+                        <label for="signupPassword2">Confirm Password</label>
+                        <i class="bi bi-eye-slash password-toggle" id="toggleSignupPassword2"></i>
+                    </div>
+
+                    <!-- reCAPTCHA (replace YOUR_RECAPTCHA_KEY with your actual key) -->
+                    <!-- Uncomment the script tag in the body if you uncomment this div -->
+                    <!-- <div class="mb-4 g-recaptcha" data-sitekey="YOUR_RECAPTCHA_KEY"></div> -->
+
+                    <button type="submit" class="btn btn-primary w-100 mb-3" id="signupBtn">
+                        <span id="signupBtnText">Create Account</span>
+                        <span id="signupSpinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none;"></span>
+                    </button>
+
+                    <div class="divider">or</div>
+
+                    <button type="button" class="btn btn-outline-light w-100">
+                        <i class="bi bi-google me-2"></i> Continue with Google
+                    </button>
+                </form>
+                <div class="auth-footer">
+                    Already have an account? <a href="#" id="switchToLogin">Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS Bundle (Popper included) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
+        xintegrity="sha384-ndDqU0Gzau9qJ1lfW4pNLlhNTkCfHzAVBReH9diLvGRem5+R9g2FzA8ZGN954O5Q"
+        crossorigin="anonymous"></script>
+    <!-- Google reCAPTCHA script (uncomment if using) -->
+    <!-- <script src="https://www.google.com/recaptcha/api.js" async defer></script> -->
+
+    <script>
+        // Get references to elements
+        const loginTab = document.getElementById('loginTab');
+        const signupTab = document.getElementById('signupTab');
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const switchToSignupLink = document.getElementById('switchToSignup');
+        const switchToLoginLink = document.getElementById('switchToLogin');
+        const alertContainer = document.getElementById('alertContainer');
+        const djangoAlertsContainer = document.getElementById('djangoAlerts');
+
+        // Function to show/hide forms and update active tab
+        function showForm(formToShow) {
+            if (formToShow === 'login') {
+                loginForm.style.display = 'block';
+                signupForm.style.display = 'none';
+                loginTab.classList.add('active');
+                signupTab.classList.remove('active');
+            } else { // 'signup'
+                loginForm.style.display = 'none';
+                signupForm.style.display = 'block';
+                loginTab.classList.remove('active');
+                signupTab.classList.add('active');
+            }
+            // Clear any existing client-side alerts when switching forms
+            clearAlert();
+            // Also hide Django alerts when switching forms, they will reappear on page reload if backend sends them
+            djangoAlertsContainer.style.display = 'none';
+        }
+
+        // Event listeners for tabs
+        loginTab.addEventListener('click', () => showForm('login'));
+        signupTab.addEventListener('click', () => showForm('signup'));
+
+        // Event listeners for "switch" links in footers
+        switchToSignupLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showForm('signup');
+        });
+        switchToLoginLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showForm('login');
+        });
+
+        // Password visibility toggle functionality
+        function setupPasswordToggle(inputId, toggleId) {
+            const passwordInput = document.getElementById(inputId);
+            const toggleIcon = document.getElementById(toggleId);
+
+            if (passwordInput && toggleIcon) {
+                toggleIcon.addEventListener('click', () => {
+                    if (passwordInput.type === 'password') {
+                        passwordInput.type = 'text';
+                        toggleIcon.classList.replace('bi-eye-slash', 'bi-eye');
+                    } else {
+                        passwordInput.type = 'password';
+                        toggleIcon.classList.replace('bi-eye', 'bi-eye-slash');
+                    }
+                });
+            }
+        }
+
+        setupPasswordToggle('loginPassword', 'toggleLoginPassword');
+        setupPasswordToggle('signupPassword', 'toggleSignupPassword');
+        setupPasswordToggle('signupPassword2', 'toggleSignupPassword2');
+
+        // Function to display client-side alerts (for simulated actions or future AJAX)
+        function showAlert(message, type) {
+            alertContainer.style.display = 'block';
+            const alertClass = type === 'success' ? 'alert-success' : (type === 'info' ? 'alert-info' : 'alert-danger');
+            const iconClass = type === 'success' ? 'bi-check-circle-fill' : (type === 'info' ? 'bi-info-circle-fill' : 'bi-exclamation-triangle-fill');
+
+            alertContainer.innerHTML = `
+                <div class="alert ${alertClass} d-flex align-items-center fade show" role="alert">
+                    <i class="bi ${iconClass} me-2"></i>
+                    <div>${message}</div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+
+            // Auto-hide alert after 5 seconds
+            setTimeout(() => {
+                const currentAlert = alertContainer.querySelector('.alert');
+                if (currentAlert) {
+                    const bsAlert = new bootstrap.Alert(currentAlert);
+                    bsAlert.close();
+                }
+                setTimeout(() => {
+                    alertContainer.style.display = 'none';
+                    alertContainer.innerHTML = '';
+                }, 500); // Match Bootstrap's fade transition duration
+            }, 5000);
+        }
+
+        // Function to clear client-side alerts immediately
+        function clearAlert() {
+            const currentAlert = alertContainer.querySelector('.alert');
+            if (currentAlert) {
+                const bsAlert = new bootstrap.Alert(currentAlert);
+                bsAlert.close();
+            }
+            alertContainer.style.display = 'none';
+            alertContainer.innerHTML = '';
+        }
+
+        // --- IMPORTANT: REMOVED CLIENT-SIDE FORM SUBMISSION SIMULATION ---
+        // These event listeners now only handle the spinner display
+        // The actual form submission is handled by the browser's native form behavior
+        // (i.e., the form will submit to the 'action' URL in the HTML)
+
+        document.getElementById('loginFormElement').addEventListener('submit', function(e) {
+            // e.preventDefault(); // REMOVED: Allow native form submission
+            const btn = document.getElementById('loginBtn');
+            const btnText = document.getElementById('loginBtnText');
+            const spinner = document.getElementById('loginSpinner');
+
+            btn.disabled = true;
+            btnText.textContent = 'Logging in...';
+            spinner.style.display = 'inline-block';
+
+            // No setTimeout here. The page will reload on successful or failed Django response.
+            // The spinner will naturally disappear on page reload.
+        });
+
+        document.getElementById('signupFormElement').addEventListener('submit', function(e) {
+            // e.preventDefault(); // REMOVED: Allow native form submission
+            const btn = document.getElementById('signupBtn');
+            const btnText = document.getElementById('signupBtnText');
+            const spinner = document.getElementById('signupSpinner');
+
+            btn.disabled = true;
+            btnText.textContent = 'Creating account...';
+            spinner.style.display = 'inline-block';
+
+            // No setTimeout here. The page will reload on successful or failed Django response.
+            // The spinner will naturally disappear on page reload.
+        });
+
+        // --- Django Error/Message Display Logic on Page Load ---
+        document.addEventListener('DOMContentLoaded', function () {
+            const djangoAlertsDiv = document.getElementById('djangoAlerts');
+            // Only proceed if the container exists and has content from Django
+            if (!djangoAlertsDiv || djangoAlertsDiv.children.length === 0) return;
+
+            djangoAlertsDiv.style.display = 'block';
+
+            // Determine which form to show based on Django errors/messages
+            // This relies on the 'form.errors' context variable and the current URL path.
+            // Ensure your Django views pass 'form' context and the URL matches '/signup/' for signup page.
+            const hasFormErrors = {{ form.errors|yesno:"true,false" }};
+            const isSignupPath = window.location.pathname === "/signup/"; // Or whatever your signup URL is
+
+            if (hasFormErrors && isSignupPath) {
+                showForm('signup');
+            } else {
+                showForm('login'); // Default to login if no specific signup errors or if it's the login path
+            }
+
+            // Optional auto-dismiss after 8 seconds for Django alerts
+            // This is generally good UX, but you might want to remove it if you want errors to persist until user dismisses.
+            setTimeout(() => {
+                const alerts = djangoAlertsDiv.querySelectorAll('.alert');
+                alerts.forEach(alert => {
+                    try {
+                        const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+                        bsAlert.close();
+                    } catch (e) {
+                        // Fallback in case Bootstrap JS isn't fully initialized or alert is already removed
+                        alert.remove();
+                    }
+                });
+
+                // Smooth fade-out of the container if no alerts remain
+                setTimeout(() => {
+                    djangoAlertsDiv.style.display = 'none';
+                }, 500); // Matches Bootstrap's fade transition duration
+            }, 8000); // Auto-dismiss after 8 seconds
+        });
+    </script>
+</body>
+</html>

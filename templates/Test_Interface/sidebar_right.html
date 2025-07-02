@@ -1,0 +1,41 @@
+<aside>
+    {% csrf_token %}
+    <h3 style="margin-top: 0; color: var(--text-primary); font-weight: 600; margin-bottom: 20px;">
+        <i class="bi bi-bar-chart-fill me-2"></i>Test Progress
+    </h3>
+    <div style="margin-bottom: 15px; padding: 10px; background-color: var(--bg-input); border-radius: 6px;">
+        <strong style="color: var(--text-primary);">Question:</strong> <span style="color: var(--text-secondary);">5/20</span>
+    </div>
+    <div style="margin-bottom: 15px; padding: 10px; background-color: var(--bg-input); border-radius: 6px;">
+        <strong style="color: var(--text-primary);">Time Remaining:</strong> <span style="color: var(--text-secondary);">24:35</span>
+    </div>
+    <div style="margin-bottom: 25px; padding: 10px; background-color: var(--bg-input); border-radius: 6px;">
+        <strong style="color: var(--text-primary);">Current Score:</strong> <span style="color: var(--text-secondary);">3/4</span>
+    </div>
+    <button class="btn-custom-primary" style="width: 100%;">
+        <i class="bi bi-flag-fill me-2"></i> Finish Test
+    </button>
+</aside>
+
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const questionForm = document.getElementById('questionForm');
+        const submitBtn = questionForm.querySelector('button[type="submit"]');
+        const submitBtnText = document.getElementById('submitBtnText');
+        const submitSpinner = document.getElementById('submitSpinner');
+
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function() {
+                // Only show spinner if form is valid (browser's HTML5 validation)
+                if (questionForm.checkValidity()) {
+                    submitBtn.disabled = true;
+                    submitBtnText.textContent = 'Submitting...';
+                    submitSpinner.style.display = 'inline-block';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

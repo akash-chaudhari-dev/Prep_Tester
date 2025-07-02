@@ -1,0 +1,123 @@
+{% extends 'Test_Interface/base.html' %}
+
+{% block title %}Test Result | MGM JNEC PYQ Portal{% endblock %}
+
+{% block content %}
+<style>
+    .result-summary-card {
+        background-color: var(--bg-card);
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    .result-summary-card h2 {
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 25px;
+    }
+    .result-summary-card .score-display {
+        font-size: 3.5rem;
+        font-weight: bold;
+        color: var(--success-color); /* Green for score */
+        margin-bottom: 20px;
+    }
+    .result-summary-card p {
+        font-size: 1.1rem;
+        color: var(--text-secondary);
+        margin-bottom: 10px;
+    }
+    .result-summary-card p strong {
+        color: var(--text-primary);
+    }
+    .result-summary-card .score-details {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-top: 20px;
+        flex-wrap: wrap; /* Allow wrapping on small screens */
+    }
+    .result-summary-card .score-item {
+        background-color: var(--bg-input);
+        padding: 15px 20px;
+        border-radius: 8px;
+        text-align: center;
+        min-width: 150px;
+    }
+    .result-summary-card .score-item .value {
+        font-size: 1.8rem;
+        font-weight: bold;
+        color: var(--accent-primary);
+    }
+    .result-summary-card .score-item .label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+    }
+    .action-buttons {
+        text-align: center;
+        margin-top: 30px;
+    }
+    .action-buttons .btn-custom-primary {
+        padding: 12px 30px;
+        font-size: 1.1rem;
+    }
+</style>
+
+<div class="content-box">
+    <div class="result-summary-card">
+        <h2><i class="bi bi-clipboard-check-fill me-2"></i> {{ test.name }} - Test Result</h2>
+        <p class="text-secondary">Subject: {{ subject.name }}</p>
+
+        <div class="score-display">{{ percent }}%</div>
+
+        <div class="score-details">
+            <div class="score-item">
+                <div class="value">{{ total_in_test }}</div>
+                <div class="label">Total Questions</div>
+            </div>
+            <div class="score-item">
+                <div class="value">{{ total_attempted }}</div>
+                <div class="label">Questions Attempted</div>
+            </div>
+            <div class="score-item">
+                <div class="value">{{ correct }}</div>
+                <div class="label">Correct Answers</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <a href="{% url 'dashboard' %}" class="btn-custom-primary me-3">
+            <i class="bi bi-house-door-fill me-2"></i> Go to Dashboard
+        </a>
+        <a href="{% url 'user_history' %}" class="btn-custom-outline">
+            <i class="bi bi-clock-history me-2"></i> View Test History
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const questionForm = document.getElementById('questionForm');
+        const submitBtn = questionForm.querySelector('button[type="submit"]');
+        const submitBtnText = document.getElementById('submitBtnText');
+        const submitSpinner = document.getElementById('submitSpinner');
+
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function() {
+                // Only show spinner if form is valid (browser's HTML5 validation)
+                if (questionForm.checkValidity()) {
+                    submitBtn.disabled = true;
+                    submitBtnText.textContent = 'Submitting...';
+                    submitSpinner.style.display = 'inline-block';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+

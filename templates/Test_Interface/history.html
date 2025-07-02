@@ -1,0 +1,139 @@
+{% extends 'Test_Interface/base.html' %}
+
+{% block title %}Test History | MGM JNEC PYQ Portal{% endblock %}
+
+{% block content %}
+<style>
+    .history-table-container {
+        background-color: var(--bg-card);
+        padding: 25px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        overflow-x: auto; /* Enable horizontal scroll for small screens */
+    }
+    .history-table-container h2 {
+        color: var(--text-primary);
+        font-weight: 600;
+        margin-bottom: 25px;
+        text-align: center;
+    }
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+    .history-table th, .history-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+        color: var(--text-secondary);
+    }
+    .history-table th {
+        color: var(--text-primary);
+        font-weight: bold;
+        background-color: rgba(0,0,0,0.1);
+        white-space: nowrap; /* Prevent headers from wrapping */
+    }
+    .history-table tbody tr:hover {
+        background-color: rgba(255,255,255,0.05);
+    }
+    .history-table .score-cell {
+        font-weight: bold;
+        color: var(--success-color);
+    }
+    .history-table .status-completed {
+        color: var(--success-color);
+        font-weight: 500;
+    }
+    .history-table .status-in-progress {
+        color: var(--info-color);
+        font-weight: 500;
+    }
+    .history-table .action-link {
+        color: var(--accent-primary);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    .history-table .action-link:hover {
+        color: var(--accent-hover);
+        text-decoration: underline;
+    }
+    .no-history-message {
+        text-align: center;
+        padding: 40px;
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+    }
+</style>
+
+<div class="content-box history-table-container">
+    <h2><i class="bi bi-clock-history me-2"></i> Your Test History</h2>
+
+    {% if history_data %}
+        <table class="history-table">
+            <thead>
+                <tr>
+                    <th>Test Name</th>
+                    <th>Subject</th>
+                    <th>Correct / Total</th>
+                    <th>Score (%)</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for attempt in history_data %}
+                    <tr>
+                        <td>{{ attempt.test_name }}</td>
+                        <td>{{ attempt.subject_name }}</td>
+                        <td>{{ attempt.correct_answers }} / {{ attempt.total_questions }}</td>
+                        <td class="score-cell">{{ attempt.score_percent }}%</td>
+                        <td>
+                            <span class="badge rounded-pill {% if attempt.status == 'Completed' %}bg-success status-completed{% else %}bg-info status-in-progress{% endif %}">
+                                {{ attempt.status }}
+                            </span>
+                        </td>
+                        <td>{{ attempt.attempt_date|date:"M d, Y H:i" }}</td>
+                        <td>
+                            <a href="{% url 'display_test_result' attempt.test_id %}" class="action-link">
+                                <i class="bi bi-eye-fill me-1"></i> View Result
+                            </a>
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-secondary">No test history available.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="no-history-message">You haven't attempted any tests yet. Go to the <a href="{% url 'dashboard' %}" style="color: var(--accent-primary); text-decoration: none;">Dashboard</a> to start one!</p>
+    {% endif %}
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const questionForm = document.getElementById('questionForm');
+        const submitBtn = questionForm.querySelector('button[type="submit"]');
+        const submitBtnText = document.getElementById('submitBtnText');
+        const submitSpinner = document.getElementById('submitSpinner');
+
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function() {
+                // Only show spinner if form is valid (browser's HTML5 validation)
+                if (questionForm.checkValidity()) {
+                    submitBtn.disabled = true;
+                    submitBtnText.textContent = 'Submitting...';
+                    submitSpinner.style.display = 'inline-block';
+                }
+            });
+        }
+    });
+</script>
+{% end block %}
+

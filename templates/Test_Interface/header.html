@@ -1,0 +1,46 @@
+{% csrf_token %}
+<header>
+    <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700;">
+        <a href="{% url 'dashboard' %}" style="color: var(--text-primary); text-decoration: none;">
+            MGM JNEC <span style="color: var(--accent-primary);">PYQ Portal</span>
+        </a>
+    </h1>
+    <nav>
+        <a href="{% url 'dashboard' %}" style="color: var(--text-secondary); margin-left: 20px; text-decoration: none; transition: color 0.2s ease;">Dashboard</a>
+        <a href="{% url 'user_history' %}" style="color: var(--text-secondary); margin-left: 20px; text-decoration: none; transition: color 0.2s ease;">History</a>
+        <a href="#" style="color: var(--text-secondary); margin-left: 20px; text-decoration: none; transition: color 0.2s ease;">About</a>
+        
+        {% if user.is_authenticated %}
+            <form action="{% url 'logout' %}" method="post" style="display:inline; margin-left: 20px;">
+                {% csrf_token %}
+                <button type="submit" class="btn-custom-outline" style="padding: 8px 15px; font-size: 0.9rem;">Logout</button>
+            </form>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn-custom-primary" style="margin-left: 20px; padding: 8px 15px; font-size: 0.9rem;">Login</a>
+        {% endif %}
+    </nav>
+</header>
+
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const questionForm = document.getElementById('questionForm');
+        const submitBtn = questionForm.querySelector('button[type="submit"]');
+        const submitBtnText = document.getElementById('submitBtnText');
+        const submitSpinner = document.getElementById('submitSpinner');
+
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function() {
+                // Only show spinner if form is valid (browser's HTML5 validation)
+                if (questionForm.checkValidity()) {
+                    submitBtn.disabled = true;
+                    submitBtnText.textContent = 'Submitting...';
+                    submitSpinner.style.display = 'inline-block';
+                }
+            });
+        }
+    });
+</script>
+{% end block %}
+

@@ -1,0 +1,90 @@
+{% extends 'Test_Interface/base.html' %}
+
+{% block title %}Select Branch | MGM JNEC PYQ Portal{% endblock %}
+
+{% block content %}
+<style>
+    .branch-selection-container {
+        max-width: 500px;
+        margin: 50px auto;
+        text-align: center;
+    }
+    .branch-selection-container h2 {
+        color: var(--text-primary);
+        margin-bottom: 25px;
+        font-weight: 600;
+    }
+    .branch-selection-container .form-group {
+        margin-bottom: 20px;
+    }
+    .branch-selection-container .form-control {
+        background-color: var(--bg-input);
+        border: 1px solid var(--border-color);
+        color: var(--text-primary);
+        padding: 10px 15px;
+        border-radius: 6px;
+        font-size: 1rem;
+    }
+    .branch-selection-container .form-control:focus {
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25);
+    }
+    .branch-selection-container label {
+        color: var(--text-secondary);
+        display: block;
+        text-align: left;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    .branch-selection-container .btn-custom-primary {
+        width: 100%;
+        padding: 12px;
+        font-size: 1.1rem;
+    }
+</style>
+
+<div class="content-box branch-selection-container">
+    <h2><i class="bi bi-mortarboard-fill me-2"></i> Select Your Branch</h2>
+    <p class="text-secondary mb-4">Please choose your engineering branch to get personalized content.</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group mb-4">
+            <label for="{{ form.branch.id_for_label }}">{{ form.branch.label }}</label>
+            {{ form.branch }}
+            {% if form.branch.errors %}
+                <div class="text-danger mt-2" style="text-align: left;">
+                    {% for error in form.branch.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn-custom-primary">
+            <i class="bi bi-check-circle-fill me-2"></i> Save Branch
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const questionForm = document.getElementById('questionForm');
+        const submitBtn = questionForm.querySelector('button[type="submit"]');
+        const submitBtnText = document.getElementById('submitBtnText');
+        const submitSpinner = document.getElementById('submitSpinner');
+
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function() {
+                // Only show spinner if form is valid (browser's HTML5 validation)
+                if (questionForm.checkValidity()) {
+                    submitBtn.disabled = true;
+                    submitBtnText.textContent = 'Submitting...';
+                    submitSpinner.style.display = 'inline-block';
+                }
+            });
+        }
+    });
+</script>
+{% end block %}
+

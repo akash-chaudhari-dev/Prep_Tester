@@ -1,0 +1,72 @@
+{% csrf_token %}
+<aside>
+    <h3 style="margin-top: 0; color: var(--text-primary); font-weight: 600; margin-bottom: 20px;">
+        <i class="bi bi-list-nested me-2"></i>Menu
+    </h3>
+
+    <ul style="list-style: none; padding: 0;">
+        {% if user.is_authenticated and user.profile.branch %}
+            <li style="margin-bottom: 15px;">
+                <h4 style="color: var(--accent-primary); font-size: 1.1rem; margin-bottom: 10px;">
+                    <i class="bi bi-diagram-3-fill me-2"></i> {{ user.profile.branch.name }}
+                </h4>
+            </li>
+            {% for subject_data in subjects_with_tests %}
+                <li style="margin-bottom: 10px;">
+                    <details {% if forloop.first %}open{% endif %}> {# Open the first subject by default #}
+                        <summary style="cursor: pointer; color: var(--text-primary); font-weight: bold; padding: 8px 0; transition: color 0.2s ease;">
+                            <i class="bi bi-book me-2"></i> {{ subject_data.subject.name }}
+                        </summary>
+                        <ul style="list-style: none; margin-left: 15px; padding-left: 0; margin-top: 8px;">
+                            {% for test_status in subject_data.tests %}
+                                <li style="margin-bottom: 5px;">
+                                    <a href="{% url 'start_test' test_status.test.id %}" style="color: var(--text-secondary); text-decoration: none; display: block; padding: 5px 0; transition: color 0.2s ease;">
+                                        <i class="bi bi-file-earmark-text me-2"></i> {{ test_status.test.name }}
+                                        {% if test_status.has_attempted %}
+                                            <span class="badge bg-success ms-2">{{ test_status.latest_score }}</span>
+                                        {% endif %}
+                                    </a>
+                                </li>
+                            {% empty %}
+                                <li style="color: var(--text-secondary); font-size: 0.9rem; padding: 5px 0;">No tests available for this subject.</li>
+                            {% endfor %}
+                        </ul>
+                    </details>
+                </li>
+            {% empty %}
+                <li style="color: var(--text-secondary); font-size: 0.9rem;">No subjects found for your branch.</li>
+                {% endfor %}
+                {% endif %}
+            
+
+            {% if not user.profile.branch %}
+                <li style="color: var(--text-secondary); font-size: 0.9rem;">
+                    Please <a href="{% url 'branch_selection' %}" style="color: var(--accent-primary); text-decoration: none;">select your branch</a> to see subjects.
+                </li>
+            {% endif %}
+    </ul>
+</aside>
+
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const questionForm = document.getElementById('questionForm');
+        const submitBtn = questionForm.querySelector('button[type="submit"]');
+        const submitBtnText = document.getElementById('submitBtnText');
+        const submitSpinner = document.getElementById('submitSpinner');
+
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function() {
+                // Only show spinner if form is valid (browser's HTML5 validation)
+                if (questionForm.checkValidity()) {
+                    submitBtn.disabled = true;
+                    submitBtnText.textContent = 'Submitting...';
+                    submitSpinner.style.display = 'inline-block';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+
