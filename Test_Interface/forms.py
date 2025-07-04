@@ -9,7 +9,7 @@ class BranchSelectionForm(forms.Form):
     """
     branch = forms.ModelChoiceField(
         queryset=Branch.objects.all().order_by('name'),
-        empty_label="Select your Branch",
+        empty_label="Chnage Your Branch",
         widget=forms.Select(attrs={'class': 'form-control'}),
         label="Your Branch"
     )

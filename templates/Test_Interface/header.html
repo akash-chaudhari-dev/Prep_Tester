@@ -1,32 +1,223 @@
-{% csrf_token %}
-<header>
-    <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700;">
-        <a href="{% url 'dashboard' %}" style="color: var(--text-primary); text-decoration: none;">
-            MGM JNEC <span style="color: var(--accent-primary);">PYQ Portal</span>
-        </a>
-    </h1>
-    <nav>
-        <a href="{% url 'dashboard' %}" style="color: var(--text-secondary); margin-left: 20px; text-decoration: none; transition: color 0.2s ease;">Dashboard</a>
-        <a href="{% url 'user_history' %}" style="color: var(--text-secondary); margin-left: 20px; text-decoration: none; transition: color 0.2s ease;">History</a>
-        <a href="#" style="color: var(--text-secondary); margin-left: 20px; text-decoration: none; transition: color 0.2s ease;">About</a>
-        
+<style>
+    :root {
+        --header-bg-dark: #1a1a1a;
+        --header-card-bg: #2c2c2c;
+        --header-input-bg: #3d3d3d;
+        --header-border-input: #555555;
+        --header-text-primary: #f1f1f1;
+        --header-text-secondary: #aaaaaa;
+        --header-accent-primary: #4f46e5;
+        --header-accent-hover: #3f35d1;
+        --header-error-color: #dc3545;
+        --header-success-color: #28a745;
+    }
+
+    /* Header Form Controls */
+    select.header-form-control {
+        background-color: var(--header-input-bg);
+        border: 1px solid var(--header-border-input);
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        color: var(--header-text-primary);
+        transition: all 0.2s ease;
+        height: 36px;
+        min-width: 180px;
+        box-shadow: none;
+    }
+
+    select.header-form-control:hover {
+        border-color: var(--header-accent-primary);
+    }
+
+    select.header-form-control:focus {
+        outline: none;
+        border-color: var(--header-accent-primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
+    }
+
+    /* Header Container */
+    .header-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 30px;
+        background-color: var(--header-bg-dark);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        width: 100%;
+    }
+
+    /* Logo Section */
+    .header-logo-section {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+    }
+
+    .header-logo {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+    }
+
+    .header-logo a {
+        color: var(--header-text-primary);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .header-logo a:hover {
+        color: var(--header-accent-primary);
+    }
+
+    /* Branch Form */
+    .header-branch-form {
+        margin-left: 0;
+        background-color: var(--header-card-bg);
+        padding: 8px 15px;
+        border-radius: 8px;
+        box-shadow: none;
+    }
+
+    .header-form-group {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        gap: 10px;
+    }
+
+    .header-form-label {
+        color: var(--header-text-secondary);
+        font-weight: 500;
+        font-size: 0.95rem;
+        white-space: nowrap;
+    }
+
+    /* Navigation */
+    .header-nav-section {
+        display: flex;
+        align-items: center;
+        gap: 25px;
+    }
+
+    .header-nav-link {
+        color: var(--header-text-secondary);
+        text-decoration: none;
+        transition: color 0.2s ease;
+        font-weight: 500;
+        font-size: 0.95rem;
+        position: relative;
+        padding: 5px 0;
+    }
+
+    .header-nav-link:hover {
+        color: var(--header-accent-primary);
+    }
+
+    .header-nav-link::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: var(--header-accent-primary);
+        transition: width 0.3s ease;
+    }
+
+    .header-nav-link:hover::after {
+        width: 100%;
+    }
+
+    /* Buttons */
+    .header-btn-outline {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        background: transparent;
+        border: 1px solid var(--header-accent-primary);
+        color: var(--header-accent-primary);
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 500;
+    }
+
+    .header-btn-outline:hover {
+        background-color: var(--header-accent-primary);
+        color: white;
+    }
+
+    .header-btn-primary {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        background: var(--header-accent-primary);
+        border: 1px solid var(--header-accent-primary);
+        color: white;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 500;
+        text-decoration: none;
+    }
+
+    .header-btn-primary:hover {
+        background-color: var(--header-accent-hover);
+        border-color: var(--header-accent-hover);
+    }
+</style>
+
+<header class="header-main">
+    <!-- Left Section: Logo + Branch Form -->
+    <div class="header-logo-section">
+        <h1 class="header-logo">
+            <a href="{% url 'dashboard' %}">
+                MGM JNEC <span style="color: var(--header-accent-primary);">PYQ Portal</span>
+            </a>
+        </h1>
+
+        {% if user_branch %}
+        <form method="POST" id="autoSubmitForm" onchange="this.submit();" class="header-branch-form">
+            {% csrf_token %}
+            <div class="header-form-group">
+                <label for="{{ form.branch.id_for_label }}" class="header-form-label">
+                    {{ form.branch.label }}
+                </label>
+                {{ form.branch }}
+            </div>
+            {% if form.branch.errors %}
+                <div class="text-danger mt-2" style="text-align: left;">
+                    {% for error in form.branch.errors %}{{ error }}{% endfor %}
+                </div>
+            {% endif %}
+        </form>
+        {% endif %}
+    </div>
+
+    <!-- Right Section: Navigation -->
+    <nav class="header-nav-section">
+        <a href="{% url 'dashboard' %}" class="header-nav-link">Dashboard</a>
+        <a href="{% url 'user_history' %}" class="header-nav-link">History</a>
+        <a href="#" class="header-nav-link">About</a>
+
         {% if user.is_authenticated %}
-            <form action="{% url 'logout' %}" method="post" style="display:inline; margin-left: 20px;">
+            <form action="{% url 'logout' %}" method="post" style="display:inline;">
                 {% csrf_token %}
-                <button type="submit" class="btn-custom-outline" style="padding: 8px 15px; font-size: 0.9rem;">Logout</button>
+                <button type="submit" class="header-btn-outline">Logout</button>
             </form>
         {% else %}
-            <a href="{% url 'login' %}" class="btn-custom-primary" style="margin-left: 20px; padding: 8px 15px; font-size: 0.9rem;">Login</a>
+            <a href="{% url 'login' %}" class="header-btn-primary">Login</a>
         {% endif %}
     </nav>
 </header>
-
 
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const questionForm = document.getElementById('questionForm');
-        const submitBtn = questionForm.querySelector('button[type="submit"]');
+        const submitBtn = questionForm?.querySelector('button[type="submit"]');
         const submitBtnText = document.getElementById('submitBtnText');
         const submitSpinner = document.getElementById('submitSpinner');
 
@@ -43,4 +234,3 @@
     });
 </script>
 {% endblock %}
-

@@ -50,8 +50,8 @@
     <form method="post">
         {% csrf_token %}
         <div class="form-group mb-4">
-            <label for="{{ form.branch.id_for_label }}">{{ form.branch.label }}</label>
-            {{ form.branch }}
+            <label for="{{ form.branch.id_for_label }}"></label>
+            {{ form.branch }}   
             {% if form.branch.errors %}
                 <div class="text-danger mt-2" style="text-align: left;">
                     {% for error in form.branch.errors %}{{ error }}{% endfor %}

@@ -75,7 +75,14 @@ def branch_selection_view(request):
         messages.info(request, f"Your current branch is {user_profile.branch.name}.")
         return redirect('dashboard') # Already has a branch, go to dashboard
 
-    form = BranchSelectionForm(request.POST or None)
+    if request.method == 'POST':
+        form = BranchSelectionForm(request.POST)
+    else:
+        # Pre-fill with current user branch if exists
+        form = BranchSelectionForm(initial={
+        'branch': user_profile.branch if user_profile.branch else None
+    })
+
     if request.method == 'POST':
         if form.is_valid():
             selected_branch = form.cleaned_data['branch']
@@ -95,10 +102,31 @@ def dashboard_view(request):
     Main dashboard showing subjects and tests relevant to the user's branch.
     If no branch is selected, redirects to branch selection.
     """
+
     user_profile = request.user.profile
     if not user_profile.branch:
         messages.warning(request, "Please select your engineering branch to view subjects and tests.")
         return redirect('branch_selection')
+
+    if request.method == 'POST':
+        form = BranchSelectionForm(request.POST)
+    else:
+        # Pre-fill with current user branch if exists
+        form = BranchSelectionForm(initial={
+        'branch': user_profile.branch if user_profile.branch else None
+    })
+
+    if request.method == 'POST':
+        if form.is_valid():
+            selected_branch = form.cleaned_data['branch']
+            user_profile.branch = selected_branch
+            user_profile.save()
+            messages.success(request, f"Your branch has been set to {selected_branch.name}.")
+            return redirect('dashboard')
+        else:
+            messages.error(request, "Please select a valid branch.")
+
+
 
     # Fetch subjects for the user's selected branch
     subjects = Subject.objects.filter(branch=user_profile.branch).prefetch_related('tests').order_by('name')
@@ -139,8 +167,14 @@ def dashboard_view(request):
             'subject': subject,
             'tests': subject_tests
         })
+    
+    
+    branches = Branch.objects.all().order_by('name')
+    form = BranchSelectionForm(request.POST or None)
 
     return render(request, 'Test_Interface/test_dashboard.html', {
+        'form': form,
+        'branches': branches,
         'user_branch': user_profile.branch,
         'subjects_with_tests': subjects_with_tests,
     })
