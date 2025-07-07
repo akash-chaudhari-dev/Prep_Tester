@@ -17,6 +17,56 @@ from .forms import BranchSelectionForm
 
 # --- Authentication Views (from previous turn, slightly adapted) ---
 
+
+
+
+from django.db.models import Sum, Avg, Count, F, Case, When, Value, CharField
+
+import io # For handling image data in memory
+import base64 # For encoding image data
+
+from .models import Branch, Subject, Test, Question, UserAttempt, UserProfile # Import UserProfile
+from .forms import BranchSelectionForm, UserProfileForm # Import UserProfileForm
+
+# --- Simulated External Image Upload API ---
+# In a real application, this would make an HTTP POST request to an actual image hosting service
+# like ImgBB, Cloudinary, etc., using their API key.
+import base64
+import requests
+from django.conf import settings
+
+def upload_image_to_external_api(image_file):
+    """
+    Uploads an image to imgbb.com and returns the hosted image URL.
+    """
+    if not image_file:
+        return None
+
+    try:
+        # Read and encode image as base64
+        encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
+
+        # Prepare API endpoint and payload
+        api_key = r"2dab781189c7777d4a16eef7dd65c558"  # Add this to your settings
+        url = "https://api.imgbb.com/1/upload"
+        payload = {
+            "key": api_key,
+            "image": encoded_image
+        }
+
+        # Send POST request
+        response = requests.post(url, data=payload)
+        response.raise_for_status()  # Raise if error (4xx/5xx)
+
+        # Extract image URL from response JSON
+        data = response.json()
+        return data['data']['url']
+
+    except Exception as e:
+        print(f"Image upload failed: {e}")
+        return None
+
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('dashboard') # Redirect to dashboard if already logged in
@@ -448,3 +498,80 @@ def user_history_view(request):
 
     return render(request, 'Test_Interface/history.html', {'history_data': history_data})
 
+@login_required(login_url='/login/')
+def user_profile_view(request):
+    user = request.user
+    user_profile = user.profile # Get the related UserProfile instance
+
+    if request.method == 'POST':
+        # Pass request.FILES to the form for file uploads
+        form = UserProfileForm(request.POST, request.FILES, instance=user_profile, user=user)
+        if form.is_valid():
+            # Handle profile picture upload separately
+            profile_picture_file = request.FILES.get('profile_picture_upload')
+            if profile_picture_file:
+                # Call the simulated external API upload function
+                image_url = upload_image_to_external_api(profile_picture_file)
+                if image_url:
+                    user_profile.profile_picture_url = image_url
+                    user_profile.save() # Save the profile to update the URL
+                    messages.success(request, "Profile picture updated successfully!")
+                else:
+                    messages.error(request, "Failed to upload profile picture to external service.")
+            
+            # Save the rest of the form data
+            form.save() # This saves the UserProfile and updates User fields (first_name, last_name, email)
+            messages.success(request, "Your profile details have been updated successfully!")
+            return redirect('user_dashboard')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"Error in {field}: {error}")
+            # Non-field errors
+            for error in form.non_field_errors():
+                messages.error(request, error)
+    else:
+        # For GET request, initialize form with user's current data
+        form = UserProfileForm(instance=user_profile, user=user) # Pass user_profile instance and user
+
+    # --- Fetch History Summary ---
+    # This example fetches last 5 UserAttempt records for display in recent activity
+    recent_history = UserAttempt.objects.filter(user=user).order_by('-attempted_at')[:5]
+    # You might want a more descriptive 'action_description' for history items
+    # For now, just showing question text.
+    for item in recent_history:
+        item.action_description = f"Attempted Q{item.question.id} ({item.question.test.name})"
+
+    # --- Fetch Mock Test / Activity Stats ---
+    # This calculates stats based on UserAttempt records
+    total_mocks_attempted = UserAttempt.objects.filter(user=user).values('question__test').distinct().count()
+
+    # To calculate average score across all completed tests:
+    # This is more complex as it requires aggregating per test first, then averaging those percentages.
+    # For simplicity, let's calculate average correct answers per attempt for now.
+    # A more robust solution would involve a 'TestResult' model created upon test completion.
+    all_user_attempts = UserAttempt.objects.filter(user=user)
+    total_correct_answers = all_user_attempts.filter(is_correct=True).count()
+    total_questions_attempted_overall = all_user_attempts.count()
+
+    average_score = 0
+    if total_questions_attempted_overall > 0:
+        average_score = round((total_correct_answers / total_questions_attempted_overall) * 100, 2)
+
+    # Completion percentage is hard to calculate without a clear definition of "total possible questions"
+    # across all tests. For now, let's keep it simple or set to 0.
+    # If you want completion % of all tests available for their branch:
+    # total_tests_in_branch = Test.objects.filter(subject__branch=user_profile.branch).count()
+    # completed_tests = UserAttempt.objects.filter(user=user).values('question__test').distinct().count()
+    # completion_percentage = round((completed_tests / total_tests_in_branch) * 100, 2) if total_tests_in_branch else 0
+    completion_percentage = 0 # Placeholder, implement based on your specific logic
+
+    context = {
+        'form': form,
+        'user': user,
+        'recent_history': recent_history,
+        'total_mocks_attempted': total_mocks_attempted,
+        'average_score': average_score,
+        'completion_percentage': completion_percentage,
+    }
+    return render(request, 'User/dashboard.html', context)

@@ -99,11 +99,14 @@ class UserAttempt(models.Model):
 class UserProfile(models.Model):
     """
     Extends Django's built-in User model to store additional information,
-    like the user's selected branch.
+    like the user's selected branch and profile picture URL.
     """
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True,
                                help_text="The user's selected engineering branch.")
+    # New field to store the URL of the externally hosted profile picture
+    profile_picture_url = models.URLField(max_length=500, blank=True, null=True,
+                                        help_text="URL of the user's profile picture hosted externally.")
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
@@ -113,5 +116,4 @@ class UserProfile(models.Model):
 def create_or_update_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
-    instance.profile.save()
-
+    instance.profile.save() # Ensure profile is always saved/updated
