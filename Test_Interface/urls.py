@@ -23,6 +23,10 @@ urlpatterns = [
     # User History URL
     path('history/', views.user_history_view, name='user_history'),
 
+    path('dashboard/', views.user_profile_view, name='user_dashboard'),
+
+
+
     # Note: The 'subject_list' URL is effectively replaced by 'dashboard'
     # If you still want a separate subject list page, you'd need a new view for it.
 ]

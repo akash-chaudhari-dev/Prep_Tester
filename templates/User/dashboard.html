@@ -1,0 +1,222 @@
+{% extends 'Test_Interface/base.html' %} {# IMPORTANT: Extend your base.html here #}
+
+{% block title %}User Dashboard | MGM JNEC PYQ Portal{% endblock %}
+
+{% block content %}
+<style>
+    /* Dashboard-specific styles */
+    /* Note: Many general styles are now in base.html. Keep only specific overrides or additions here. */
+    .dashboard-container {
+        max-width: 900px; /* Increased max-width for better layout on larger screens */
+        margin: auto;
+        padding: 10px; /* Adjust padding for mobile */
+    }
+
+    .card {
+        background-color: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+        margin-bottom: 25px; /* Space between cards */
+    }
+
+    .profile-header {
+        text-align: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .profile-pic-container {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background-color: #4a5568;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto 15px auto;
+        overflow: hidden;
+        border: 3px solid var(--accent-primary);
+    }
+
+    .profile-pic-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Form control styles are largely inherited from base.html,
+       but specific overrides for background/color on focus are good. */
+    .form-control, .form-select {
+        background-color: var(--bg-primary); /* Use base primary background for inputs */
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+        background-color: var(--bg-primary); /* Keep background consistent on focus */
+        color: var(--text-primary);
+    }
+
+    .form-label {
+        color: var(--text-secondary);
+        font-weight: 500;
+    }
+
+    /* Button styles are largely inherited from base.html */
+    /* .btn-primary { ... } */
+    /* .btn-outline-secondary { ... } */
+
+    .list-group-item {
+        background-color: transparent;
+        border-color: var(--border-color);
+        color: var(--text-secondary);
+    }
+    .list-group-item strong {
+        color: var(--text-primary);
+    }
+
+    @media (min-width: 768px) {
+        .form-section .row > div:nth-child(odd) {
+            padding-right: 10px; /* Space between columns on desktop */
+        }
+        .form-section .row > div:nth-child(even) {
+            padding-left: 10px; /* Space between columns on desktop */
+        }
+        .dashboard-container {
+            padding: 30px;
+        }
+    }
+</style>
+
+<div class="dashboard-container">
+    <h2 class="mb-4 text-center text-primary"><i class="bi bi-person-circle me-2"></i> Your Dashboard</h2>
+
+    {# Django messages are handled by base.html, no need for a separate div here #}
+
+    {# Profile Header #}
+    <div class="card profile-header">
+        <div class="profile-pic-container">
+            {# Display profile picture if URL exists, otherwise default icon #}
+            {% if user.profile.profile_picture_url %}
+                <img src="{{ user.profile.profile_picture_url }}" alt="Profile Picture">
+            {% else %}
+                <i class="bi bi-person-fill" style="font-size: 4rem; color: var(--text-secondary);"></i>
+            {% endif %}
+        </div>
+        <h3 class="mb-1">Akash Chaudhari</h3> 
+        <!-- {{ user.get_full_name|default:user.username }} -->
+        <p class="text-secondary mb-0">{{ user.email }}</p>
+        <p class="text-secondary small">Last login: {{ user.last_login|date:"M d, Y H:i" }}</p>
+    </div>
+
+    {# Update Profile Section #}
+    <div class="card form-section">
+        <h4 class="mb-4 text-primary"><i class="bi bi-pencil-square me-2"></i> Update Your Profile</h4>
+        {# IMPORTANT: Add enctype="multipart/form-data" for file uploads #}
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.name.id_for_label }}" class="form-label">Full Name</label>
+                    {{ form.name }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.email.id_for_label }}" class="form-label">Email Address</label>
+                    {{ form.email }}
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.branch.id_for_label }}" class="form-label">Branch</label>
+                    {{ form.branch }}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.year.id_for_label }}" class="form-label">Academic Year</label>
+                    {{ form.year }}
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="" class="form-label">Mobile Number</label>
+                
+            </div>
+            
+            {# Profile Picture Upload Field #}
+            <div class="mb-3">
+                <label for="{{ form.profile_picture_upload.id_for_label }}" class="form-label">Profile Picture</label>
+                {{ form.profile_picture_upload }}
+                {% if user.profile.profile_picture_url %}
+                    <small class="form-text text-secondary mt-2">Current: <a href="{{ user.profile.profile_picture_url }}" target="_blank" style="color: var(--accent-primary);">View Current Picture</a></small>
+                {% endif %}
+            </div>
+
+            <div class="d-grid mt-4">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-arrow-clockwise me-2"></i> Update Profile</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="row">
+        {# Mock Test / Activity Stats #}
+        <div class="col-md-6">
+            <div class="card">
+                <h4 class="mb-4 text-primary"><i class="bi bi-bar-chart-line-fill me-2"></i> Your Test Stats</h4>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Total Mocks Attempted: <strong>{{ total_mocks_attempted }}</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Average Score: <strong>{{ average_score }}%</strong>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Completion: <strong>{{ completion_percentage }}%</strong>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        {# History Summary #}
+        <div class="col-md-6">
+            <div class="card">
+                <h4 class="mb-4 text-primary"><i class="bi bi-clock-history me-2"></i> Recent Activity</h4>
+                {% if recent_history %}
+                    <ul class="list-group list-group-flush">
+                        {% for item in recent_history %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <span>{{ item.action_description }}</span> {# Or item.test.name if it's a test attempt #}
+                                <span class="badge bg-secondary">{{ item.timestamp|date:"M d, H:i" }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="d-grid mt-3">
+                        <a href="{% url 'user_history' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-list-columns-reverse me-2"></i> View Full History
+                        </a>
+                    </div>
+                {% else %}
+                    <p class="text-secondary text-center">No recent activity found.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    {# Security Section and Logout #}
+    <div class="card text-center">
+        <h4 class="mb-4 text-primary"><i class="bi bi-shield-lock-fill me-2"></i> Account Settings</h4>
+        <div class="d-grid gap-2 col-md-6 mx-auto">
+            <a href="" class="btn btn-outline-secondary">
+                <i class="bi bi-key-fill me-2"></i> Change Password
+            </a>
+            <a href="{% url 'logout' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-box-arrow-right me-2"></i> Logout
+            </a>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
