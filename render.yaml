@@ -2,8 +2,9 @@ services:
   - type: web
     name: django-app
     runtime: python
-    buildCommand: "./build.sh"
-    startCommand: "gunicorn Prep_Tester.wsgi:application"
+    buildCommand: ./build.sh
+    startCommand: gunicorn Prep_Tester.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --threads 2
+    healthCheckPath: /healthz/
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: Prep_Tester.settings
