@@ -61,6 +61,7 @@
         margin-top: 30px;
         flex-wrap: wrap;
     }
+    .action-buttons a { text-decoration: none; }
     .action-buttons .btn-custom-primary {
         padding: 12px 30px;
         font-size: 1.1rem;
@@ -91,7 +92,7 @@
     </div>
 
     <div class="action-buttons">
-        <a href="{% url 'review_test' test.id %}" class="btn-custom-primary">
+        <a href="{% url 'start_test' test.id %}" class="btn-custom-primary">
             <i class="bi bi-eye-fill me-2"></i> Review Complete Test
         </a>
         <a href="{% url 'dashboard' %}" class="btn-custom-outline">

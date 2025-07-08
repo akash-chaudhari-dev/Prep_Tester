@@ -11,9 +11,11 @@
         font-size: 2rem;
         text-align: center;
     }
+
     .subject-section {
         margin-bottom: 40px;
     }
+
     .subject-section h3 {
         color: var(--accent-primary);
         font-size: 1.6rem;
@@ -22,52 +24,63 @@
         border-bottom: 2px solid var(--border-color);
         padding-bottom: 10px;
     }
+
     .test-card {
         background-color: var(--bg-card);
         border: 1px solid var(--border-color);
         border-radius: 10px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
         transition: transform 0.2s ease, box-shadow 0.2s ease;
-        height: 100%; /* Ensures cards in a row have consistent height */
+        height: 100%;
+        /* Ensures cards in a row have consistent height */
         display: flex;
         flex-direction: column;
     }
+
     .test-card:hover {
         transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
     }
+
     .test-card .card-body {
         padding: 20px;
-        flex-grow: 1; /* Allows body to expand and push footer down */
+        flex-grow: 1;
+        /* Allows body to expand and push footer down */
     }
+
     .test-card .card-title {
         color: var(--text-primary);
         font-size: 1.3rem;
         font-weight: 600;
         margin-bottom: 10px;
     }
+
     .test-card .card-text {
         color: var(--text-secondary);
         font-size: 0.95rem;
         margin-bottom: 15px;
     }
+
     .test-card .card-footer {
-        background-color: rgba(0,0,0,0.1);
+        background-color: rgba(0, 0, 0, 0.1);
         border-top: 1px solid var(--border-color);
         padding: 15px 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
+
     .test-card .card-footer .score-badge {
         font-weight: bold;
         padding: 5px 10px;
         border-radius: 5px;
     }
+
     .test-card .card-footer .score-badge.completed {
         background-color: var(--success-color);
         color: white;
     }
+
     .test-card .card-footer .score-badge.in-progress {
         background-color: var(--info-color);
         color: white;
@@ -78,55 +91,58 @@
     <h2 class="section-title"><i class="bi bi-grid-fill me-3"></i>Dashboard</h2>
 
     {% if not user_branch %}
-        <div class="alert alert-info d-flex align-items-center fade show" role="alert">
-            <i class="bi bi-info-circle-fill me-2"></i>
-            <div>Please <a href="{% url 'branch_selection' %}" class="alert-link" style="color: var(--info-color);">select your engineering branch</a> to view relevant subjects and tests.</div>
-        </div>
+    <div class="alert alert-info d-flex align-items-center fade show" role="alert">
+        <i class="bi bi-info-circle-fill me-2"></i>
+        <div>Please <a href="{% url 'branch_selection' %}" class="alert-link" style="color: var(--info-color);">select
+                your engineering branch</a> to view relevant subjects and tests.</div>
+    </div>
     {% else %}
-        <h2 class="section-title" style="margin-top: 0; margin-bottom: 40px;">
-            <i class="bi bi-mortarboard-fill me-2"></i> {{ user_branch.name }} Branch Tests
-        </h2>
+    <h2 class="section-title" style="margin-top: 0; margin-bottom: 40px;">
+        <i class="bi bi-mortarboard-fill me-2"></i> {{ user_branch.name }} Branch Tests
+    </h2>
 
-        {% for subject_data in subjects_with_tests %}
-            <div class="subject-section">
-                <h3><i class="bi bi-book-half me-2"></i> {{ subject_data.subject.name }}</h3>
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                    {% for test_status in subject_data.tests %}
-                        <div class="col">
-                            <div class="test-card">
-                                <div class="card-body">
-                                    <h5 class="card-title">{{ test_status.test.name }}</h5>
-                                    <p class="card-text">
-                                        <i class="bi bi-clock me-2"></i> Duration: {{ test_status.test.duration_minutes }} mins<br>
-                                        <i class="bi bi-award me-2"></i> Total Marks: {{ test_status.test.total_marks }}
-                                    </p>
-                                </div>
-                                <div class="card-footer">
-                                    {% if test_status.has_attempted %}
-                                        <span class="score-badge {% if test_status.latest_score == 'In Progress' %}in-progress{% else %}completed{% endif %}">
-                                            {{ test_status.latest_score }}
-                                        </span>
-                                        <a href="{% url 'display_test_result' test_status.test.id %}" class="btn-custom-outline btn-sm">
-                                            <i class="bi bi-eye-fill me-1"></i> View Result
-                                        </a>
-                                    {% else %}
-                                        <a href="{% url 'start_test' test_status.test.id %}" class="btn-custom-primary btn-sm">
-                                            <i class="bi bi-play-circle-fill me-1"></i> Attempt Test
-                                        </a>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    {% empty %}
-                        <div class="col-12">
-                            <p class="text-secondary text-center">No tests available for this subject yet.</p>
-                        </div>
-                    {% endfor %}
+    {% for subject_data in subjects_with_tests %}
+    <div class="subject-section">
+        <h3><i class="bi bi-book-half me-2"></i> {{ subject_data.subject.name }}</h3>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for test_status in subject_data.tests %}
+            <div class="col">
+                <div class="test-card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ test_status.test.name }}</h5>
+                        <p class="card-text">
+                            <i class="bi bi-clock me-2"></i> Duration: {{ test_status.test.duration_minutes }} mins<br>
+                            <i class="bi bi-award me-2"></i> Total Marks: {{ test_status.test.total_marks }}
+                        </p>
+                    </div>
+                    <div class="card-footer d-flex flex-row align-items-center justify-content-between gap-2 p-2" style="border-top:none;">
+                        {% if test_status.has_attempted %}
+                        <span class="score-badge {% if test_status.latest_score == 'In Progress' %}in-progress{% else %}completed{% endif %}">
+                            {{ test_status.latest_score }}
+                        </span>
+                        <a href="{% url 'display_test_result' test_status.test.id %}" class="btn-custom-outline btn-sm ms-2 w-auto text-center" style="text-decoration:none;">
+                            Result
+                        </a>
+                        {% else %}
+                        <a href="{% url 'start_test' test_status.test.id %}" class="btn-custom-primary btn-sm w-100 w-md-auto text-center" style="text-decoration:none;"
+                            onclick="goFullScreen(event, '{% url 'start_test' test_status.test.id %}')">
+                            <i class="bi bi-play-circle-fill me-1"></i> Attempt Test
+                        </a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
-        {% empty %}
-            <p class="text-secondary text-center">No subjects found for your branch. Please check back later or contact admin.</p>
-        {% endfor %}
+            {% empty %}
+            <div class="col-12">
+                <p class="text-secondary text-center">No tests available for this subject yet.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-secondary text-center">No subjects found for your branch. Please check back later or contact admin.
+    </p>
+    {% endfor %}
     {% endif %}
 </div>
 {% endblock %}
@@ -135,14 +151,33 @@
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+
+    function goFullScreen(event, url) {
+        event.preventDefault(); // Stop default navigation
+
+        let elem = document.documentElement;
+
+        // Fullscreen request
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().then(() => {
+                window.location.href = url; // Navigate after fullscreen starts
+            }).catch((err) => {
+                console.warn("Fullscreen failed:", err);
+                window.location.href = url; // Fallback: just navigate
+            });
+        } else {
+            // Fallback for old browsers
+            window.location.href = url;
+        }
+    }
+    document.addEventListener('DOMContentLoaded', function () {
         const questionForm = document.getElementById('questionForm');
         const submitBtn = questionForm.querySelector('button[type="submit"]');
         const submitBtnText = document.getElementById('submitBtnText');
         const submitSpinner = document.getElementById('submitSpinner');
 
         if (submitBtn) {
-            submitBtn.addEventListener('click', function() {
+            submitBtn.addEventListener('click', function () {
                 // Only show spinner if form is valid (browser's HTML5 validation)
                 if (questionForm.checkValidity()) {
                     submitBtn.disabled = true;

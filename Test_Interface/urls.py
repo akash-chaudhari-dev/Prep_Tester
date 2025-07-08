@@ -4,19 +4,13 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Authentication URLs (from your previous login/signup setup)
-    path('login/', views.login_view, name='login'),
-    path('signup/', views.signup_view, name='signup'),
-    path('logout/', views.logout_view, name='logout'),
-
     # Core Portal URLs
     path('', views.dashboard_view, name='dashboard'), # This is now the main entry point after auth
     path('branch-selection/', views.branch_selection_view, name='branch_selection'),
 
-    path('test/<int:test_id>/review/', views.review_test, name='review_test'),
-
     # Test related URLs
     path('test/start/<int:test_id>/', views.start_test, name='start_test'),
+    path('test/<int:test_id>/question/<int:q_index>/', views.question_partial_view, name='question_partial'),
     path('test/<int:test_id>/q/<int:q_index>/', views.question_view, name='question_view'),
     path('test/<int:test_id>/result/', views.display_test_result, name='display_test_result'),
 
@@ -25,8 +19,7 @@ urlpatterns = [
 
     path('dashboard/', views.user_profile_view, name='user_dashboard'),
 
+    path('about/', views.about_view, name='about'),
+    path('terms-and-conditions/', views.terms_and_conditions_view, name='terms_and_conditions'),
 
-
-    # Note: The 'subject_list' URL is effectively replaced by 'dashboard'
-    # If you still want a separate subject list page, you'd need a new view for it.
 ]

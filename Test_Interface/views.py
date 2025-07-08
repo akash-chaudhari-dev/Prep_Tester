@@ -1,3 +1,4 @@
+
 # Test_Interface/views.py
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -5,35 +6,23 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Sum, Count, F, Case, When, Value, CharField
+from django.db.models import Sum, Avg, Count, F, Case, When, Value, CharField, IntegerField
 from django.db.models.functions import Coalesce
-from django.urls import reverse # For dynamic URL generation
-from django.db.models import Count, Case, When, IntegerField
-from Test_Interface.models import UserAttempt, Test
-
-
-from .models import Branch, Subject, Test, Question, UserAttempt, UserProfile
-from .forms import BranchSelectionForm
-
-# --- Authentication Views (from previous turn, slightly adapted) ---
-
-
-
-
-from django.db.models import Sum, Avg, Count, F, Case, When, Value, CharField
-
-import io # For handling image data in memory
-import base64 # For encoding image data
-
-from .models import Branch, Subject, Test, Question, UserAttempt, UserProfile # Import UserProfile
-from .forms import BranchSelectionForm, UserProfileForm # Import UserProfileForm
-
-# --- Simulated External Image Upload API ---
-# In a real application, this would make an HTTP POST request to an actual image hosting service
-# like ImgBB, Cloudinary, etc., using their API key.
+from django.urls import reverse
+from django.conf import settings
+import io
 import base64
 import requests
-from django.conf import settings
+from django.http import HttpResponse
+from django.utils import timezone
+from datetime import timedelta
+import os
+from dotenv import load_dotenv
+from .models import Branch, Subject, Test, Question, UserAttempt, UserProfile
+from .forms import BranchSelectionForm, UserProfileForm
+
+load_dotenv()  # Load environment variables from .env file
+
 
 def upload_image_to_external_api(image_file):
     """
@@ -47,7 +36,7 @@ def upload_image_to_external_api(image_file):
         encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
 
         # Prepare API endpoint and payload
-        api_key = r"2dab781189c7777d4a16eef7dd65c558"  # Add this to your settings
+        api_key = os.getenv('IMGBB_API_KEY') 
         url = "https://api.imgbb.com/1/upload"
         payload = {
             "key": api_key,
@@ -66,53 +55,6 @@ def upload_image_to_external_api(image_file):
         print(f"Image upload failed: {e}")
         return None
 
-
-def login_view(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard') # Redirect to dashboard if already logged in
-
-    form = AuthenticationForm(request, data=request.POST or None)
-    if request.method == 'POST':
-        if form.is_valid():
-            username = form.cleaned_data.get('username')
-            password = form.cleaned_data.get('password')
-            user = authenticate(username=username, password=password)
-            if user is not None:
-                login(request, user)
-                messages.success(request, f"Welcome back, {username}!")
-                # Redirect to branch selection if no branch is set, otherwise to dashboard
-                if not user.profile.branch:
-                    return redirect('branch_selection')
-                return redirect('dashboard')
-            else:
-                messages.error(request, "Invalid username or password.")
-        else:
-            messages.error(request, "Please correct the errors below.")
-    return render(request, 'user_log/signup.html', {'form': form, 'is_login_page': True})
-
-def signup_view(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard') # Redirect to dashboard if already logged in
-
-    form = UserCreationForm(request.POST or None)
-    if request.method == 'POST':
-        if form.is_valid():
-            user = form.save()
-            # UserProfile is automatically created by signal
-            login(request, user) # Log the user in immediately after signup
-            messages.success(request, f"Account created successfully for {user.username}! Please select your branch.")
-            return redirect('branch_selection') # Redirect to branch selection after signup
-        else:
-            messages.error(request, "Please correct the errors below to create an account.")
-    return render(request, 'user_log/signup.html', {'form': form, 'is_signup_page': True})
-
-@login_required(login_url='/login/')
-def logout_view(request):
-    logout(request)
-    messages.info(request, "You have been logged out.")
-    return redirect('login')
-
-# --- Core Portal Views ---
 
 @login_required(login_url='/login/')
 def branch_selection_view(request):
@@ -229,26 +171,21 @@ def dashboard_view(request):
         'subjects_with_tests': subjects_with_tests,
     })
 
-# Note: subject_list view will now be the dashboard_view, and 'subject_list' URL will point to dashboard_view
-# The original subject_list view logic is integrated into dashboard_view.
-
 @login_required(login_url='/login/')
 def start_test(request, test_id):
     """
     Initializes a new test attempt for the user.
-    It clears any previous attempts for the given test for the current user
-    and redirects to the first question of that test.
+    Instead of deleting previous attempts, it creates a new attempt session,
+    allowing the user to attempt the same test multiple times.
     """
     test = get_object_or_404(Test, id=test_id)
 
-    # Clear existing attempts for this user and test to start fresh
-    UserAttempt.objects.filter(user=request.user, question__test=test).delete()
-    messages.info(request, f"Starting new test: {test.name} in {test.subject.name}.")
+    # Optionally, you can create a TestAttempt model to track each session.
+    # For now, we just keep all UserAttempt records and start a new run.
+    # The question_view logic should be able to distinguish between attempts if you add a session key.
+
+    messages.info(request, f"Starting new test: {test.name} in {test.subject.name}. (Multiple attempts allowed)")
     return redirect('question_view', test_id=test.id, q_index=0)
-
-
-from django.utils import timezone
-from datetime import timedelta
 
 @login_required(login_url='/login/')
 def question_view(request, test_id, q_index=0):
@@ -413,38 +350,6 @@ def display_test_result(request, test_id):
         'percent': percent_correct,
     })
 
-@login_required(login_url='/login/')
-def review_test(request, test_id):
-    """
-    Allows reviewing a completed test by showing all questions with answers
-    """
-    test = get_object_or_404(Test, id=test_id)
-    questions = test.questions.all().order_by('id')
-    
-    # Get all user attempts for this test
-    user_attempts = UserAttempt.objects.filter(
-        user=request.user,
-        question__in=questions
-    ).select_related('question')
-    
-    # Create a dictionary of question_id to attempt for easy lookup
-    attempts_dict = {attempt.question_id: attempt for attempt in user_attempts}
-    
-    # Prepare questions with attempt data
-    questions_with_attempts = []
-    for question in questions:
-        attempt = attempts_dict.get(question.id)
-        questions_with_attempts.append({
-            'question': question,
-            'attempt': attempt,
-            'is_correct': attempt.is_correct if attempt else False,
-            'selected_option': attempt.selected_option if attempt else None
-        })
-    
-    return render(request, 'Test_Interface/review_test.html', {
-        'test': test,
-        'questions_with_attempts': questions_with_attempts,
-    })
 
 from django.db.models import Max
 
@@ -575,3 +480,148 @@ def user_profile_view(request):
         'completion_percentage': completion_percentage,
     }
     return render(request, 'User/dashboard.html', context)
+
+
+@login_required(login_url='/login/')
+def question_partial_view(request, test_id, q_index=0):
+    """
+    Handles fetching and submitting individual questions via HTMX.
+    This view returns only the 'question_card.html' partial.
+    """
+    test = get_object_or_404(Test, id=test_id)
+    subject = test.subject
+    questions = list(test.questions.all().order_by('id'))
+
+    # Check if q_index is out of bounds (test finished or invalid index)
+    if q_index >= len(questions) or q_index < 0:
+        # If test is finished, HTMX will redirect to result page.
+        # If invalid index, redirect to dashboard or an error page.
+        # For HTMX, we can return an empty response or a redirect header.
+        response = HttpResponse(status=204) # 204 No Content
+        response['HX-Redirect'] = reverse('display_test_result', args=[test.id])
+        return response
+
+    question = questions[q_index]
+    submitted = False
+    is_correct = None
+    selected_option_value = None
+
+    if request.method == 'POST':
+        selected_option_value = request.POST.get('option') # HTMX sends form data
+        
+        # Validate selection
+        if selected_option_value is None:
+            messages.error(request, "Please select an option before submitting.")
+            # Re-render the current question with an error
+            # We need to fetch previous attempt data if any
+            current_attempt = UserAttempt.objects.filter(user=request.user, question=question).first()
+            if current_attempt:
+                submitted = True
+                is_correct = current_attempt.is_correct
+                selected_option_value = current_attempt.selected_option
+            return render(request, 'Test_Interface/partials/question_card.html', {
+                'test': test,
+                'question': question,
+                'q_index': q_index,
+                'total': len(questions),
+                'submitted': submitted,
+                'is_correct': is_correct,
+                'solution': question.solution,
+                'selected': selected_option_value,
+            })
+
+        try:
+            selected_option_value = int(selected_option_value)
+        except ValueError:
+            messages.error(request, "Invalid option selected.")
+            current_attempt = UserAttempt.objects.filter(user=request.user, question=question).first()
+            if current_attempt:
+                submitted = True
+                is_correct = current_attempt.is_correct
+                selected_option_value = current_attempt.selected_option
+            return render(request, 'Test_Interface/partials/question_card.html', {
+                'test': test,
+                'question': question,
+                'q_index': q_index,
+                'total': len(questions),
+                'submitted': submitted,
+                'is_correct': is_correct,
+                'solution': question.solution,
+                'selected': selected_option_value,
+            })
+
+        is_correct = (selected_option_value == question.correct_option)
+
+        # Create or update UserAttempt
+        UserAttempt.objects.update_or_create(
+            user=request.user,
+            question=question,
+            defaults={
+                'selected_option': selected_option_value,
+                'is_correct': is_correct
+            }
+        )
+        submitted = True # Mark as submitted for immediate feedback display
+
+        if is_correct:
+            messages.success(request, "Correct answer!")
+        else:
+            messages.error(request, f"Incorrect. The correct answer was option {question.correct_option}.")
+
+        # After submission, re-render the same question partial to show feedback
+        # HTMX will swap this back into the container
+        return render(request, 'Test_Interface/partials/question_card.html', {
+            'test': test,
+            'question': question,
+            'q_index': q_index,
+            'total': len(questions),
+            'submitted': submitted, # Now True
+            'is_correct': is_correct,
+            'solution': question.solution,
+            'selected': selected_option_value,
+        })
+
+    # GET request: Render the current question partial
+    current_attempt = UserAttempt.objects.filter(
+        user=request.user,
+        question=question
+    ).first()
+
+    if current_attempt:
+        submitted = True
+        is_correct = current_attempt.is_correct
+        selected_option_value = current_attempt.selected_option
+
+    return render(request, 'Test_Interface/partials/question_card.html', {
+        'test': test,
+        'question': question,
+        'q_index': q_index,
+        'total': len(questions),
+        'submitted': submitted,
+        'is_correct': is_correct,
+        'solution': question.solution,
+        'selected': selected_option_value,
+    })
+
+
+def about_view(request):
+    """
+    Renders the About Us page with details about the application and its creators.
+    """
+    # Placeholder data for developers/team members
+    team_members = [
+        {'name': 'Akash Chaudhari', 'role': 'Lead Developer', 'image_url': 'https://placehold.co/200x200/6366f1/ffffff?text=Akash', 'bio': 'Specializing in backend logic and database design.'},
+        {'name': 'Developer Two', 'role': 'Frontend Developer', 'image_url': 'https://placehold.co/200x200/4f46e5/ffffff?text=Dev+Two', 'bio': 'Crafting intuitive user interfaces and experiences.'},
+        {'name': 'Developer Three', 'role': 'Content Creator', 'image_url': 'https://placehold.co/200x200/3e35d1/ffffff?text=Dev+Three', 'bio': 'Responsible for curating and adding test content.'},
+        {'name': 'Mentor Four', 'role': 'Project Advisor', 'image_url': 'https://placehold.co/200x200/2c24b0/ffffff?text=Mentor', 'bio': 'Providing strategic guidance and quality assurance.'},
+    ]
+    context = {
+        'team_members': team_members
+    }
+    return render(request, 'Test_Interface/about.html', context)
+
+def terms_and_conditions_view(request):
+    """
+    Renders the Terms and Conditions page.
+    """
+    return render(request, 'Test_Interface/terms_and_conditions.html')

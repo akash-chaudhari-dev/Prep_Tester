@@ -13,17 +13,14 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 import dotenv
-dotenv.load_dotenv()
 import dj_database_url
+
+dotenv.load_dotenv()
 
 MONGO_DB_URI = os.getenv("MONGO_DB_URI")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('DJANGO_SECRET')
@@ -31,12 +28,11 @@ SECRET_KEY = os.getenv('DJANGO_SECRET')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
 
-
+# SECURITY WARNING: define the correct hosts in production!
 ALLOWED_HOSTS = os.getenv('DJANGO_ALLOWED_HOSTS', '127.0.0.1').split(',')
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -45,8 +41,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    'Test_Interface',  # Your app
-    'user_log',
+    # custom apps
+    'Test_Interface',  
+    'authenticator',  # User authentication and management app
+    'django_htmx',
     
 ]
 
@@ -59,6 +57,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django_htmx.middleware.HtmxMiddleware',
 
 ]
 
@@ -85,6 +84,11 @@ WSGI_APPLICATION = 'Prep_Tester.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+
+
+# Use SQLite for local development
+# Uncomment the following lines to use SQLite as the database
+
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.sqlite3',
@@ -92,6 +96,10 @@ WSGI_APPLICATION = 'Prep_Tester.wsgi.application'
 #     }
 # }
 
+
+
+
+# Use PostgreSQL for production
 DATABASES = {
     'default': dj_database_url.config(
         default=os.getenv("DATABASE_URL"),
@@ -135,16 +143,21 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# mgm_pyq_portal/settings.py
+# Authentication settings
+# Redirect URLs after login and logout
 LOGIN_REDIRECT_URL = 'dashboard' # Name of the URL pattern for dashboard
 LOGOUT_REDIRECT_URL = 'login'    # Name of the URL pattern for login
+
+# Messages framework settings
+MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'

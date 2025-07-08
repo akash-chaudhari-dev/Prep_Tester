@@ -1,0 +1,171 @@
+{% extends 'Test_Interface/base.html' %}
+
+{% block title %}About Us | MGM JNEC PYQ Portal{% endblock %}
+
+{% block content %}
+<style>
+    .about-section, .team-section {
+        background: linear-gradient(135deg, var(--bg-card) 80%, var(--accent-primary) 120%);
+        padding: 32px 24px 32px 24px;
+        border-radius: 14px;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+        margin-bottom: 36px;
+        border: 1.5px solid var(--border-color);
+    }
+    .about-section h2, .team-section h2 {
+        color: var(--accent-primary);
+        font-weight: 700;
+        margin-bottom: 28px;
+        text-align: center;
+        letter-spacing: 0.5px;
+    }
+    .about-section p {
+        color: var(--text-secondary);
+        font-size: 1.13rem;
+        line-height: 1.7;
+        margin-bottom: 18px;
+        text-align: justify;
+    }
+    .about-section p:last-child {
+        margin-bottom: 0;
+    }
+    .team-member-card {
+        text-align: center;
+        padding: 24px 16px 18px 16px;
+        background: linear-gradient(120deg, var(--bg-card) 80%, var(--bg-input) 120%);
+        border-radius: 10px;
+        border: 1.5px solid var(--border-color);
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        transition: box-shadow 0.2s, transform 0.2s;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.13);
+        position: relative;
+    }
+    .team-member-card:hover {
+        box-shadow: 0 8px 32px rgba(79,70,229,0.13);
+        transform: translateY(-4px) scale(1.03);
+        border-color: var(--accent-primary);
+    }
+    .team-member-card img {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--accent-primary);
+        margin: 0 auto 14px auto;
+        box-shadow: 0 2px 8px rgba(79,70,229,0.08);
+        background: var(--bg-input);
+    }
+    .team-member-card h4 {
+        color: var(--text-primary);
+        font-weight: 700;
+        margin-bottom: 4px;
+        font-size: 1.13rem;
+        letter-spacing: 0.2px;
+    }
+    .team-member-card p.role {
+        color: var(--accent-primary);
+        font-size: 0.98rem;
+        margin-bottom: 8px;
+        font-weight: 500;
+        letter-spacing: 0.1px;
+    }
+    .team-member-card p.bio {
+        color: var(--text-secondary);
+        font-size: 0.93rem;
+        flex-grow: 1;
+        margin-bottom: 0;
+        text-align: center;
+    }
+    .team-member-card .social-links {
+        margin-top: 10px;
+    }
+    .team-member-card .social-links a {
+        color: var(--accent-primary);
+        margin: 0 6px;
+        font-size: 1.2rem;
+        transition: color 0.2s;
+        text-decoration: none;
+    }
+    .team-member-card .social-links a:hover {
+        color: var(--success-color);
+    }
+    @media (max-width: 767.98px) {
+        .team-member-card {
+            margin-bottom: 20px;
+        }
+        .about-section, .team-section {
+            padding: 18px 6px 18px 6px;
+        }
+    }
+</style>
+
+<div class="content-box">
+
+    <div class="about-section">
+        <h2><i class="bi bi-info-circle-fill me-2"></i> About MGM JNEC PYQ Portal</h2>
+        <p><strong>Mission:</strong> Making exam prep simpler by organizing all previous year papers in one place for MGM JNEC students.</p>
+        <ul style="color:var(--text-secondary);font-size:1.08rem;line-height:1.7;margin-bottom:18px;margin-left:1.2em;">
+            <li>Fast access to PYQs — no login required.</li>
+            <li>Filter by year, subject, and branch.</li>
+            <li>Includes model answers, stats, and downloads.</li>
+            <li>Reliable, updated, and distraction-free.</li>
+        </ul>
+        <div style="margin: 18px 0 0 0;">
+            <strong>Who’s behind this?</strong> <br>
+            <span style="color:var(--text-secondary);">A student-led project from <b>MGM's JNEC, Aurangabad</b> — built by students, for students, as part of our own GATE prep journey.</span>
+        </div>
+        <div style="margin: 18px 0 0 0;">
+            <strong>Credibility:</strong>
+            <ul style="color:var(--text-secondary);font-size:1.02rem;line-height:1.6;margin-left:1.2em;">
+                <li>Used by 1000+ students (and counting)</li>
+                <li>Powered by Django &amp; PostgreSQL, hosted on Render</li>
+                <li>No ads. No login required. Just PYQs.</li>
+            </ul>
+        </div>
+        <div style="margin: 18px 0 0 0;">
+            <strong>Contact / Feedback:</strong>
+            <span style="color:var(--text-secondary);">Found a bug? Want to request a missing paper? <a href="mailto:pyqportal@mgmjnec.ac.in" style="color:var(--accent-primary);text-decoration:underline;">Email us</a> or <a href="/feedback/" style="color:var(--accent-primary);text-decoration:underline;">send feedback</a>.</span>
+        </div>
+        <div style="margin: 18px 0 0 0;">
+            <strong>How it was built:</strong>
+            <span style="color:var(--text-secondary);">This portal is built with Django, Bootstrap 5, and a lot of student coffee. Open source, fast, and always improving.</span>
+        </div>
+        <div style="margin: 18px 0 0 0;">
+            <strong>Terms &amp; Conditions:</strong>
+            <span style="color:var(--text-secondary);">
+                By using this portal, you agree to our 
+                <a href="{% url 'terms_and_conditions' %}" style="color:var(--accent-primary);text-decoration:underline;">Terms &amp; Conditions</a>.
+            </span>
+        </div>
+    </div>
+
+    <div class="team-section">
+        <h2><i class="bi bi-people-fill me-2"></i> Meet the Team</h2>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+            {% for member in team_members %}
+                <div class="col">
+                    <div class="team-member-card">
+                        <img src="{{ member.image_url }}" alt="{{ member.name }}">
+                        <h4>{{ member.name }}</h4>
+                        <p class="role">{{ member.role }}</p>
+                        <p class="bio">{{ member.bio }}</p>
+                        {% if member.social_links %}
+                        <div class="social-links">
+                            {% for link in member.social_links %}
+                                <a href="{{ link.url }}" target="_blank" rel="noopener" title="{{ link.platform }}">
+                                    <i class="bi bi-{{ link.icon }}"></i>
+                                </a>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

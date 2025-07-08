@@ -118,63 +118,17 @@
 </style>
 
 {% load custom_filters %}
-<div class="content-box">
-    <h2 style="color: var(--text-primary); margin-bottom: 20px; font-weight: 600;">
-        <i class="bi bi-journal-check me-2"></i> {{ test.name }} - Question {{ q_index|add:1 }} of {{ total }}
-    </h2>
-    <p class="text-secondary mb-4">Subject: {{ subject.name }}</p>
 
-    <div class="question-card">
-        <div class="question-text">{{ question.text }}</div>
+    
 
-        <form method="post" id="questionForm" class="options-list">
-            {% csrf_token %}
+    <div id="question-card-container"
+     hx-get="{% url 'question_partial' test.id q_index %}"
+     hx-trigger="load"
+     hx-target="#question-card-container"
+     hx-swap="innerHTML">
+</div>
+</div>
 
-            {% for idx in "1234" %}
-                <label class="option-label {% if submitted and selected|stringformat:'s' == idx %}selected-{% if is_correct %}correct{% else %}wrong{% endif %}{% endif %} {% if submitted and question.correct_option|stringformat:'s' == idx %}correct-answer{% endif %}" data-idx="{{ idx }}">
-                    <input type="radio" name="option" value="{{ idx }}" {% if submitted %}disabled{% endif %} {% if selected|stringformat:'s' == idx %}checked{% endif %}>
-                    {{ question|get_option:idx }}
-                </label>
-            {% endfor %}
-
-            {% if not submitted %}
-            <button type="submit" id="submitBtn" class="btn-custom-primary mt-4" style="width: 40%; display: block; margin: 0 auto;">
-                <i class="bi bi-check-circle-fill me-2"></i> Check Answer
-            </button>
-            {% else %}
-                <div class="feedback-box {% if is_correct %}correct{% else %}wrong{% endif %}">
-                    <i class="bi bi-{% if is_correct %}check{% else %}x{% endif %}-circle-fill"></i>
-                    {% if is_correct %}Correct Answer!{% else %}Incorrect Answer.{% endif %}
-                </div>
-            {% endif %}
-
-            <input type="hidden" name="selected_option" id="selectedOptionHidden">
-        </form>
-
-        {% if submitted %}
-        <div class="solution-box">
-            <strong>Solution:</strong> {{ question.solution }}
-        </div>
-        {% endif %}
-
-        <div class="navigation-buttons">
-            {% if q_index > 0 %}
-                <a href="{% url 'question_view' test.id q_index|add:-1 %}" class="btn-custom-outline">
-                    <i class="bi bi-arrow-left-circle-fill me-2"></i> Previous
-                </a>
-            {% endif %}
-            
-            {% if q_index|add:1 < total %}
-                <a href="{% url 'question_view' test.id q_index|add:1 %}" class="btn-custom-primary">
-                    <i class="bi bi-arrow-right-circle-fill me-2"></i> Next
-                </a>
-            {% else %}
-                <a href="{% url 'display_test_result' test.id %}" class="btn-custom-primary">
-                    <i class="bi bi-flag-fill me-2"></i> Finish Test
-                </a>
-            {% endif %}
-        </div>
-    </div>
 </div>
 {% endblock %}
 

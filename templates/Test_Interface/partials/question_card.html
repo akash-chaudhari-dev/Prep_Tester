@@ -1,0 +1,89 @@
+{% load custom_filters %} {# Load your custom filter here #}
+
+{# This partial is loaded into #question-card-container #}
+<h2 style="color: var(--text-primary); margin-bottom: 20px; font-weight: 600;">
+    <i class="bi bi-journal-check me-2"></i> {{ test.name }} - Question {{ q_index|add:1 }} of {{ total }}
+</h2>
+<p class="text-secondary mb-4">Subject: {{ test.subject.name }}</p>
+
+<div class="question-card">
+    <div class="question-text">{{ question.text }}</div>
+
+    {# HTMX form for submitting the answer #}
+    <form hx-post="{% url 'question_partial' test.id q_index %}"
+          hx-target="#question-card-container"
+          hx-swap="innerHTML"
+          class="options-list"
+          id="questionForm">
+        {% csrf_token %}
+
+        {% for idx in "1234" %}
+            <label class="option-label 
+                {% if submitted and selected|stringformat:'s' == idx %}
+                    selected-{% if is_correct %}correct{% else %}wrong{% endif %}
+                {% endif %} 
+                {% if submitted and question.correct_option|stringformat:'s' == idx %}
+                    correct-answer
+                {% endif %}
+                {% if submitted %}disabled{% endif %}" 
+                data-idx="{{ idx }}">
+                <input type="radio" name="option" value="{{ idx }}" 
+                    {% if submitted %}disabled{% endif %} 
+                    {% if selected|stringformat:'s' == idx %}checked{% endif %} 
+                    required>
+                {{ question|get_option:idx }}
+            </label>
+        {% endfor %}
+
+        {% if not submitted %}
+            <button type="submit" id="submitBtn" class="btn-custom-primary mt-4" style="width: 40%; display: block; margin: 0 auto;">
+                <span class="htmx-indicator spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <i class="bi bi-check-circle-fill me-2"></i> Check and Save Answer
+            </button>
+        {% else %}
+            <div class="feedback-box {% if is_correct %}correct{% else %}wrong{% endif %}">
+                <i class="bi bi-{% if is_correct %}check{% else %}x{% endif %}-circle-fill"></i>
+                {% if is_correct %}Correct Answer!{% else %}Incorrect Answer.{% endif %}
+            </div>
+        {% endif %}
+
+        {# Hidden input to store selected option if JavaScript is used for client-side validation/tracking #}
+        {# Not strictly needed for basic HTMX POST, as 'option' radio button handles it #}
+        {# <input type="hidden" name="selected_option" id="selectedOptionHidden"> #}
+    </form>
+
+    {% if submitted %}
+    <div class="solution-box">
+        <strong>Solution:</strong> {{ question.solution }}
+    </div>
+    {% endif %}
+
+    <div class="navigation-buttons">
+        {% if q_index > 0 %}
+            <button 
+                hx-get="{% url 'question_partial' test.id q_index|add:-1 %}" 
+                hx-target="#question-card-container" 
+                hx-swap="innerHTML"
+                class="btn-custom-outline">
+                <span class="htmx-indicator spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <i class="bi bi-arrow-left-circle-fill me-2"></i> Previous
+            </button>
+        {% endif %}
+
+        {% if q_index|add:1 < total %}
+            <button 
+                hx-get="{% url 'question_partial' test.id q_index|add:1 %}" 
+                hx-target="#question-card-container" 
+                hx-swap="innerHTML"
+                class="btn-custom-primary">
+                <span class="htmx-indicator spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                <i class="bi bi-arrow-right-circle-fill me-2"></i> Next
+            </button>
+        {% else %}
+            {# This is the last question, so link to the result page #}
+            <a href="{% url 'display_test_result' test.id %}" class="btn-custom-primary">
+                <i class="bi bi-flag-fill me-2"></i> Finish Test
+            </a>
+        {% endif %}
+    </div>
+</div>

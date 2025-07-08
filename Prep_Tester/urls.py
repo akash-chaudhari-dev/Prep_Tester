@@ -21,9 +21,9 @@ from django.conf.urls.static import static
 from Test_Interface import urls as Test_Interface_urls
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include(Test_Interface_urls)),  # Redirect root URL to admin
-    path('user/', include('user_log.urls')),
+    path('admin/', admin.site.urls), # Admin site URL
+    path('test/', include(Test_Interface_urls)), # Main application URL
+    path('', include('authenticator.urls')), # User authentication and management URLs
 ] 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
  
