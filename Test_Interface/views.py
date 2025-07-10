@@ -20,6 +20,9 @@ import os
 from dotenv import load_dotenv
 from .models import Branch, Subject, Test, Question, UserAttempt, UserProfile
 from .forms import BranchSelectionForm, UserProfileForm
+import certifi
+
+
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -32,6 +35,7 @@ def upload_image_to_external_api(image_file):
         return None
 
     try:
+        
         # Read and encode image as base64
         encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
 
@@ -44,11 +48,13 @@ def upload_image_to_external_api(image_file):
         }
 
         # Send POST request
-        response = requests.post(url, data=payload)
+        # Note: SSL verification needed for Production use only if necessary.
+        response = requests.post(url, data=payload, verify=False) # Disable SSL verification for testing purposes
         response.raise_for_status()  # Raise if error (4xx/5xx)
 
         # Extract image URL from response JSON
         data = response.json()
+        print(f"Image uploaded successfully: {data['data']['url']}")
         return data['data']['url']
 
     except Exception as e:
@@ -169,6 +175,7 @@ def dashboard_view(request):
         'branches': branches,
         'user_branch': user_profile.branch,
         'subjects_with_tests': subjects_with_tests,
+        'is_mobile': request.user_agent.is_mobile,
     })
 
 @login_required(login_url='/login/')

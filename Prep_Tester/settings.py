@@ -45,6 +45,8 @@ INSTALLED_APPS = [
     'Test_Interface',  
     'authenticator',  # User authentication and management app
     'django_htmx',
+    'django_user_agents',
+
     
 ]
 
@@ -59,9 +61,14 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
 
-]
+    'django_user_agents.middleware.UserAgentMiddleware',
 
+]
+# URL Configuration
 ROOT_URLCONF = 'Prep_Tester.urls'
+
+# User agents cache configuration
+USER_AGENTS_CACHE = 'default'
 
 TEMPLATES = [
     {

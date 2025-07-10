@@ -218,16 +218,28 @@
             {% endfor %}
         {% endif %}
     </div>
+    {% if not is_mobile %}
+        {% include 'Test_Interface/header.html' %}
+    {% else %}
+        {% include 'Test_Interface/mobile_view/header.html' %}
+    {% endif %}
 
-    {% include 'Test_Interface/header.html' %}
     {% load sidebar_tags %} {# If you have custom template tags for sidebar #}
-    {% include 'Test_Interface/sidebar_left.html' %}
+
+    {% if not is_mobile %}
+        {% include 'Test_Interface/sidebar_left.html' %}
+
+    {% endif %}
     <main>
         <!-- This is where content from specific pages (dashboard, question, result, history) will be inserted -->
-        {% block content %}{% endblock %}
+        {% block content %}
+        
+        {% endblock %}
     </main>
+    {% if not is_mobile %}
+        {% include 'Test_Interface/sidebar_right.html' %}
+    {% endif %}
     
-    {% include 'Test_Interface/sidebar_right.html' %}
 
     <!-- Bootstrap 5 JS Bundle (Popper included) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"

@@ -1,0 +1,410 @@
+<style>
+    :root {
+        --header-bg-dark: #1a1a1a;
+        --header-card-bg: #2c2c2c;
+        --header-input-bg: #3d3d3d;
+        --header-border-input: #555555;
+        --header-text-primary: #f1f1f1;
+        --header-text-secondary: #aaaaaa;
+        --header-accent-primary: #4f46e5;
+        --header-accent-hover: #3f35d1;
+        --header-error-color: #dc3545;
+        --header-success-color: #28a745;
+
+        /* New variables for sidebar */
+        --sidebar-width: 80%; /* Width of the mobile sidebar */
+        --sidebar-bg: #1e1e2f;
+        --overlay-bg: rgba(0, 0, 0, 0.7);
+    }
+
+    /* General body styling for mobile-first approach */
+    body {
+        margin: 0;
+        overflow-x: hidden; /* Prevent horizontal scroll when sidebar is off-screen */
+        position: relative; /* For sidebar overlay */
+    }
+
+    /* Header Form Controls (for branch selection inside sidebar) */
+    select.header-form-control {
+        background-color: var(--header-input-bg);
+        border: 1px solid var(--header-border-input);
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        color: var(--header-text-primary);
+        transition: all 0.2s ease;
+        height: 36px;
+        width: 100%; /* Full width for mobile input */
+        box-shadow: none;
+        -webkit-appearance: none; /* Remove default select arrow */
+        -moz-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23aaaaaa' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
+    }
+
+    select.header-form-control:hover {
+        border-color: var(--header-accent-primary);
+    }
+
+    select.header-form-control:focus {
+        outline: none;
+        border-color: var(--header-accent-primary);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.25);
+    }
+
+    /* Header Container (Mobile View) */
+    .header-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 15px 20px; /* Reduced padding for mobile */
+        background-color: var(--header-bg-dark);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        width: 100%;
+        box-sizing: border-box; /* Include padding in width */
+    }
+
+    /* Logo Section */
+    .header-logo-section {
+        display: flex;
+        align-items: center;
+        gap: 10px; /* Reduced gap for mobile */
+    }
+
+    .header-logo {
+        margin: 0;
+        font-size: 1.3rem; /* Smaller font size for mobile */
+        font-weight: 700;
+    }
+
+    .header-logo a {
+        color: var(--header-text-primary);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .header-logo a:hover {
+        color: var(--header-accent-primary);
+    }
+
+    .logo-gap {
+        margin-left: 5px; /* Adjusted gap */
+    }
+
+    /* Hamburger Icon */
+    .hamburger-menu {
+        display: block; /* Always show hamburger on mobile */
+        cursor: pointer;
+        font-size: 1.8rem; /* Large enough to tap */
+        color: var(--header-text-primary);
+        z-index: 1001; /* Above sidebar */
+        margin-left: 15px; /* Space between profile pic and hamburger */
+    }
+
+    /* Navigation (Hidden on mobile header, moved to sidebar) */
+    .header-nav-section, .header-branch-form {
+        display: none; /* Hide these from the main header on mobile */
+    }
+
+    /* --- Collapsible Sidebar --- */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        right: -100%; /* Start off-screen to the right */
+        width: var(--sidebar-width);
+        height: 100vh;
+        background-color: var(--sidebar-bg);
+        box-shadow: -5px 0 15px rgba(0, 0, 0, 0.5);
+        transition: right 0.3s ease-in-out;
+        z-index: 999; /* Below hamburger, above content */
+        padding: 20px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sidebar.open {
+        right: 0; /* Slide in */
+    }
+
+    .sidebar-close-btn {
+        background: none;
+        border: none;
+        color: var(--header-text-primary);
+        font-size: 2rem;
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        cursor: pointer;
+        z-index: 1002;
+    }
+
+    .sidebar-content {
+        flex-grow: 1; /* Allow content to fill space */
+        padding-top: 50px; /* Space for close button */
+    }
+
+    .sidebar-nav-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 20px;
+    }
+
+    .sidebar-nav-list li {
+        margin-bottom: 15px;
+    }
+
+    .sidebar-nav-link, .sidebar-branch-label {
+        display: block;
+        color: var(--header-text-primary);
+        text-decoration: none;
+        font-size: 1.1rem;
+        padding: 10px 15px;
+        border-radius: 5px;
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .sidebar-nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: var(--header-accent-primary);
+    }
+
+    .sidebar-nav-link.logout-btn {
+        background-color: var(--header-error-color);
+        color: white;
+        border: none;
+        cursor: pointer;
+        text-align: center;
+    }
+    .sidebar-nav-link.logout-btn:hover {
+        background-color: #c82333;
+    }
+
+    .sidebar-branch-form {
+        margin-top: 20px;
+        padding: 15px;
+        background-color: var(--header-card-bg);
+        border-radius: 8px;
+    }
+
+    .sidebar-branch-label {
+        font-size: 1rem;
+        margin-bottom: 10px;
+        color: var(--header-text-secondary);
+    }
+
+    /* Overlay for when sidebar is open */
+    .overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--overlay-bg);
+        z-index: 998; /* Below sidebar, above main content */
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    }
+
+    .overlay.show {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    /* New styles for profile picture in header */
+    .header-right-section {
+        display: flex;
+        align-items: center;
+        gap: 10px; /* Space between profile pic and hamburger */
+    }
+
+    .header-profile-pic-container {
+        width: 40px; /* Size for header profile pic */
+        height: 40px;
+        border-radius: 50%;
+        background-color: #4a5568; /* Default background if no image */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        border: 2px solid var(--header-accent-primary);
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .header-profile-pic-container:hover {
+        transform: scale(1.05);
+    }
+
+    .header-profile-pic-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .header-profile-pic-container .bi-person-fill {
+        font-size: 2rem; /* Size of default icon */
+        color: var(--header-text-secondary);
+    }
+    .mobile-logo-container {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-decoration: none;
+}
+
+.mobile-logo-img {
+    height: 45px;
+    width: 45px;
+    object-fit: contain;
+    border-radius: 4px;
+}
+
+.mobile-logo-text {
+    font-size: 1.2rem;
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--header-text-primary, #222);
+    display: inline-block;
+    text-align: left;
+}
+
+.mobile-logo-highlight {
+    color: var(--header-accent-primary);
+    font-weight: 600;
+    display: block;
+}
+
+</style>
+
+<header class="header-main">
+    <!-- Left Section: Logo -->
+    {% load static %}
+
+<div class="header-logo-section">
+    <a href="{% url 'dashboard' %}" class="mobile-logo-container">
+        <img src="https://cdn3.iconfinder.com/data/icons/education-flat-sticker-vol-5/150/study__student__education__library__reading__biology__learning-1024.png" alt="Logo" class="mobile-logo-img">
+        <span class="mobile-logo-text">
+            MGM JNEC<br>
+            <span class="mobile-logo-highlight">PYQ Portal</span>
+        </span>
+    </a>
+</div>
+
+
+    <!-- Right Section: Profile Photo + Hamburger Icon -->
+    <div class="header-right-section">
+        {% if user.is_authenticated %}
+            <a href="{% url 'user_dashboard' %}" class="header-profile-pic-link">
+                <div class="header-profile-pic-container">
+                    {% if user.profile.profile_picture_url %}
+                        <img src="{{ user.profile.profile_picture_url }}" alt="Profile Picture">
+                    {% else %}
+                        <i class="bi bi-person-fill"></i>
+                    {% endif %}
+                </div>
+            </a>
+        {% endif %}
+        <div class="hamburger-menu" onclick="toggleSidebar()">
+            <i class="bi bi-list"></i>
+        </div>
+    </div>
+</header>
+
+<!-- Collapsible Sidebar -->
+<div class="sidebar" id="sidebar">
+    <button class="sidebar-close-btn" onclick="toggleSidebar()"><i class="bi bi-x-lg"></i></button>
+    <div class="sidebar-content">
+        <ul class="sidebar-nav-list">
+            {% if user.is_authenticated %}
+                
+                <li><a href="{% url 'user_dashboard' %}" class="sidebar-nav-link"><i class="bi bi-grid-fill me-2"></i> Dashboard</a></li>
+                <li><a href="{% url 'user_history' %}" class="sidebar-nav-link"><i class="bi bi-clock-history me-2"></i> History</a></li>
+                <li><a href="{% url 'about' %}" class="sidebar-nav-link"><i class="bi bi-info-circle-fill me-2"></i> About</a></li>
+                <li>
+                    <form action="{% url 'logout' %}" method="post" style="display:block; margin-top: 20px;">
+                        {% csrf_token %}
+                        <button type="submit" class="sidebar-nav-link logout-btn" style="width: 100%;">
+                            <i class="bi bi-box-arrow-right me-2"></i> Logout
+                        </button>
+                    </form>
+                </li>
+            {% else %}
+                <li><a href="{% url 'login' %}" class="sidebar-nav-link"><i class="bi bi-box-arrow-in-right me-2"></i> Login</a></li>
+                <li><a href="{% url 'signup' %}" class="sidebar-nav-link"><i class="bi bi-person-plus-fill me-2"></i> Sign Up</a></li>
+            {% endif %}
+        </ul>
+
+        {% if user.is_authenticated and user.profile.branch %}
+        <div class="sidebar-branch-form">
+            <form method="POST" id="sidebarBranchForm" onchange="this.submit();">
+                {% csrf_token %}
+                <div class="header-form-group" style="flex-direction: column; align-items: flex-start;">
+                    <label for="{{ form.branch.id_for_label }}" class="sidebar-branch-label">
+                        <i class="bi bi-mortarboard-fill me-2"></i> Current Branch: {{ user.profile.branch.name }}
+                    </label>
+                    <p style="color: var(--header-text-secondary); font-size: 0.85rem; margin-bottom: 5px;">Change Branch:</p>
+                    {{ form.branch }}
+                </div>
+                {% if form.branch.errors %}
+                    <div class="text-danger mt-2" style="text-align: left; font-size: 0.8rem;">
+                        {% for error in form.branch.errors %}{{ error }}{% endfor %}
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+{# The existing extra_js block from your original header.html, kept untouched #}
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const questionForm = document.getElementById('questionForm');
+        const submitBtn = questionForm?.querySelector('button[type="submit"]');
+        const submitBtnText = document.getElementById('submitBtnText');
+        const submitSpinner = document.getElementById('submitSpinner');
+
+        if (submitBtn) {
+            submitBtn.addEventListener('click', function() {
+                // Only show spinner if form is valid (browser's HTML5 validation)
+                if (questionForm.checkValidity()) {
+                    submitBtn.disabled = true;
+                    submitBtnText.textContent = 'Submitting...';
+                    submitSpinner.style.display = 'inline-block';
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}
+
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('show');
+        document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : ''; // Prevent scrolling body when sidebar is open
+    }
+
+    // Close sidebar if a navigation link is clicked (optional, for better UX)
+    document.querySelectorAll('.sidebar-nav-link').forEach(link => {
+        link.addEventListener('click', function() {
+            if (document.getElementById('sidebar').classList.contains('open')) {
+                toggleSidebar();
+            }
+        });
+    });
+</script>
