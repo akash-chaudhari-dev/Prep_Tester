@@ -171,15 +171,90 @@
         background-color: var(--header-accent-hover);
         border-color: var(--header-accent-hover);
     }
+
+    /* New styles for profile picture in header */
+    .header-right-section {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        /* Space between profile pic and hamburger */
+    }
+
+    .header-profile-pic-container {
+        width: 45px;
+        /* Size for header profile pic */
+        height: 45px;
+        border-radius: 50%;
+        background-color: #4a5568;
+        /* Default background if no image */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: hidden;
+        border: 2px solid var(--header-accent-primary);
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .header-profile-pic-container:hover {
+        transform: scale(1.05);
+    }
+
+    .header-profile-pic-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .header-profile-pic-container .bi-person-fill {
+        font-size: 2rem;
+        /* Size of default icon */
+        color: var(--header-text-secondary);
+    }
+
+    .logo-container {
+    position: relative;
+    left: -10px; /* Adjust as needed */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.logo-img {
+    height: 50px;
+    width: 50px;
+    object-fit: contain;
+    border-radius: 6px; /* Optional for smooth look */
+}
+
+.logo-text {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--header-text-primary, #222); /* fallback color */
+}
+
+.logo-highlight {
+    color: var(--header-accent-primary);
+    margin-left: 4px;
+}
+
+    
 </style>
 
 <header class="header-main">
     <!-- Left Section: Logo + Branch Form -->
     <div class="header-logo-section">
         <h1 class="header-logo">
-            <a href="{% url 'dashboard' %}">
-                MGM JNEC <span class="logo-gap" style="color: var(--header-accent-primary);">PYQ Portal</span>
+            {% load static %}
+            <a href="{% url 'dashboard' %}" class="logo-container">
+                <img src="https://cdn3.iconfinder.com/data/icons/education-flat-sticker-vol-5/150/study__student__education__library__reading__biology__learning-1024.png"
+                    alt="Logo" class="logo-img">
+                <span class="logo-text">
+                    MGM JNEC <span class="logo-highlight">PYQ Portal</span>
+                </span>
             </a>
+
         </h1>
 
         {% if user_branch %}
@@ -192,9 +267,9 @@
                 {{ form.branch }}
             </div>
             {% if form.branch.errors %}
-                <div class="text-danger mt-2" style="text-align: left;">
-                    {% for error in form.branch.errors %}{{ error }}{% endfor %}
-                </div>
+            <div class="text-danger mt-2" style="text-align: left;">
+                {% for error in form.branch.errors %}{{ error }}{% endfor %}
+            </div>
             {% endif %}
         </form>
         {% endif %}
@@ -206,27 +281,31 @@
         <a href="{% url 'user_history' %}" class="header-nav-link">History</a>
         <a href="{% url 'about' %}" class="header-nav-link">About</a>
 
-        {% if user.is_authenticated %}
-            <form action="{% url 'logout' %}" method="post" style="display:inline;">
-                {% csrf_token %}
-                <button type="submit" class="header-btn-outline">Logout</button>
-            </form>
-        {% else %}
-            <a href="{% url 'login' %}" class="header-btn-primary">Login</a>
-        {% endif %}
+        <div class="header-right-section">
+            {% if user.is_authenticated %}
+            <a href="{% url 'user_dashboard' %}" class="header-profile-pic-link">
+                <div class="header-profile-pic-container">
+                    {% if user.profile.profile_picture_url %}
+                    <img src="{{ user.profile.profile_picture_url }}" alt="Profile Picture">
+                    {% else %}
+                    <i class="bi bi-person-fill"></i>
+                    {% endif %}
+                </div>
+            </a>
+            {% endif %}
     </nav>
 </header>
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const questionForm = document.getElementById('questionForm');
         const submitBtn = questionForm?.querySelector('button[type="submit"]');
         const submitBtnText = document.getElementById('submitBtnText');
         const submitSpinner = document.getElementById('submitSpinner');
 
         if (submitBtn) {
-            submitBtn.addEventListener('click', function() {
+            submitBtn.addEventListener('click', function () {
                 // Only show spinner if form is valid (browser's HTML5 validation)
                 if (questionForm.checkValidity()) {
                     submitBtn.disabled = true;
