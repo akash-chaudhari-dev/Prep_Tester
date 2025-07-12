@@ -107,6 +107,10 @@ class UserProfile(models.Model):
     # New field to store the URL of the externally hosted profile picture
     profile_picture_url = models.URLField(max_length=500, blank=True, null=True,
                                         help_text="URL of the user's profile picture hosted externally.")
+    academic_year = models.CharField(max_length=10, blank=True, null=True,
+                            help_text="The academic year of the user (e.g., 2023-2024).")
+    mobile_number = models.CharField(max_length=15, blank=True, null=True,
+                                      help_text="User's mobile number (e.g., +919876543210).")
 
     def __str__(self):
         return f"{self.user.username}'s Profile"

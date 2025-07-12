@@ -1,4 +1,3 @@
-
 # Test_Interface/views.py
 
 from django.shortcuts import render, get_object_or_404, redirect
@@ -6,7 +5,7 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Sum, Avg, Count, F, Case, When, Value, CharField, IntegerField
+from django.db.models import Sum, Avg, Count, F, Case, When, Value, CharField, IntegerField, Max
 from django.db.models.functions import Coalesce
 from django.urls import reverse
 from django.conf import settings
@@ -19,13 +18,10 @@ from datetime import timedelta
 import os
 from dotenv import load_dotenv
 from .models import Branch, Subject, Test, Question, UserAttempt, UserProfile
-from .forms import BranchSelectionForm, UserProfileForm
+from .forms import BranchSelectionForm, UserProfileForm, AccountSettingsForm
 import certifi
 
-
-
 load_dotenv()  # Load environment variables from .env file
-
 
 def upload_image_to_external_api(image_file):
     """
@@ -35,12 +31,21 @@ def upload_image_to_external_api(image_file):
         return None
 
     try:
+        import base64
+        import requests
+        import os
+        from django.conf import settings
         
+        # Get API key from settings or environment
+        api_key = getattr(settings, 'IMGBB_API_KEY', os.getenv('IMGBB_API_KEY'))
+        if not api_key:
+            print("Warning: IMGBB_API_KEY not found in settings or environment variables")
+            return None
+
         # Read and encode image as base64
         encoded_image = base64.b64encode(image_file.read()).decode('utf-8')
 
         # Prepare API endpoint and payload
-        api_key = os.getenv('IMGBB_API_KEY') 
         url = "https://api.imgbb.com/1/upload"
         payload = {
             "key": api_key,
@@ -48,9 +53,20 @@ def upload_image_to_external_api(image_file):
         }
 
         # Send POST request
-        # Note: SSL verification needed for Production use only if necessary.
-        response = requests.post(url, data=payload, verify=False) # Disable SSL verification for testing purposes
+        response = requests.post(url, data=payload)
         response.raise_for_status()  # Raise if error (4xx/5xx)
+        
+        # Parse response
+        data = response.json()
+        if data.get('success'):
+            return data['data']['url']
+        else:
+            print(f"Image upload failed: {data.get('error', 'Unknown error')}")
+            return None
+
+    except Exception as e:
+        print(f"Error uploading image: {str(e)}")
+        return None
 
         # Extract image URL from response JSON
         data = response.json()
@@ -60,7 +76,6 @@ def upload_image_to_external_api(image_file):
     except Exception as e:
         print(f"Image upload failed: {e}")
         return None
-
 
 @login_required(login_url='/login/')
 def branch_selection_view(request):
@@ -92,7 +107,7 @@ def branch_selection_view(request):
             messages.error(request, "Please select a valid branch.")
 
     branches = Branch.objects.all().order_by('name') # For displaying options if form fails or for initial GET
-    return render(request, 'Test_Interface/branch_selection.html', {'form': form, 'branches': branches})
+    return render(request, 'Test_Interface/branch_selection.html', {'form': form, 'branches': branches,'is_mobile': request.user_agent.is_mobile})
 
 @login_required(login_url='/login/')
 def dashboard_view(request):
@@ -246,6 +261,7 @@ def question_view(request, test_id, q_index=0):
                 'all_questions_answered': all_questions_answered,
                 'test_active': test_active,
                 'time_remaining': time_remaining,
+                'is_mobile': request.user_agent.is_mobile,
             })
 
         if not is_review:
@@ -271,6 +287,7 @@ def question_view(request, test_id, q_index=0):
                     'all_questions_answered': all_questions_answered,
                     'test_active': test_active,
                     'time_remaining': time_remaining,
+                    'is_mobile': request.user_agent.is_mobile,
                 })
 
             is_correct = (selected_option_value == question.correct_option)
@@ -330,8 +347,8 @@ def question_view(request, test_id, q_index=0):
         'all_questions_answered': all_questions_answered,
         'test_active': test_active,
         'time_remaining': time_remaining,
+        'is_mobile': request.user_agent.is_mobile,
     })
-
 
 @login_required(login_url='/login/')
 def display_test_result(request, test_id):
@@ -355,11 +372,8 @@ def display_test_result(request, test_id):
         'total_attempted': total_questions_attempted,
         'correct': correct_answers,
         'percent': percent_correct,
+        'is_mobile': request.user_agent.is_mobile,
     })
-
-
-from django.db.models import Max
-
 
 @login_required(login_url='/login/')
 def user_history_view(request):
@@ -408,51 +422,83 @@ def user_history_view(request):
             'total_marks': total_marks,
         })
 
-    return render(request, 'Test_Interface/history.html', {'history_data': history_data})
+    return render(request, 'Test_Interface/history.html', {'history_data': history_data, 'is_mobile': request.user_agent.is_mobile})
 
 @login_required(login_url='/login/')
 def user_profile_view(request):
     user = request.user
-    user_profile = user.profile # Get the related UserProfile instance
+    user_profile = user.profile
 
     if request.method == 'POST':
-        # Pass request.FILES to the form for file uploads
-        form = UserProfileForm(request.POST, request.FILES, instance=user_profile, user=user)
-        if form.is_valid():
-            # Handle profile picture upload separately
-            profile_picture_file = request.FILES.get('profile_picture_upload')
-            if profile_picture_file:
-                # Call the simulated external API upload function
-                image_url = upload_image_to_external_api(profile_picture_file)
-                if image_url:
-                    user_profile.profile_picture_url = image_url
-                    user_profile.save() # Save the profile to update the URL
-                    messages.success(request, "Profile picture updated successfully!")
-                else:
-                    messages.error(request, "Failed to upload profile picture to external service.")
+        # Check if this is just a profile picture upload
+        if 'profile_picture_upload' in request.FILES:
+            profile_picture_file = request.FILES['profile_picture_upload']
             
-            # Save the rest of the form data
-            form.save() # This saves the UserProfile and updates User fields (first_name, last_name, email)
-            messages.success(request, "Your profile details have been updated successfully!")
+            # Validate file type
+            allowed_types = ['image/jpeg', 'image/png', 'image/jpg']
+            if profile_picture_file.content_type not in allowed_types:
+                messages.error(request, "Please upload only JPEG or PNG images.")
+                return redirect('user_dashboard')
+                
+            # Validate file size (max 5MB)
+            if profile_picture_file.size > 5 * 1024 * 1024:
+                messages.error(request, "File size too large. Please upload an image less than 5MB.")
+                return redirect('user_dashboard')
+                
+            # Upload to external service
+            image_url = upload_image_to_external_api(profile_picture_file)
+            if image_url:
+                try:
+                    user_profile.profile_picture_url = image_url
+                    user_profile.save()
+                    messages.success(request, "Profile picture updated successfully!")
+                except Exception as e:
+                    messages.error(request, f"Error saving profile picture: {str(e)}")
+            else:
+                messages.error(request, "Failed to upload profile picture. Please try again.")
             return redirect('user_dashboard')
-        else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"Error in {field}: {error}")
-            # Non-field errors
-            for error in form.non_field_errors():
-                messages.error(request, error)
-    else:
-        # For GET request, initialize form with user's current data
-        form = UserProfileForm(instance=user_profile, user=user) # Pass user_profile instance and user
+            
+        elif 'update_profile' in request.POST:
+            profile_form = UserProfileForm(request.POST, request.FILES, instance=user_profile, user=user)
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, "Your profile details have been updated successfully!")
+                return redirect('user_dashboard')
+            else:
+                for field, errors in profile_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{field}: {error}")
+                        
+        elif 'update_account' in request.POST:
+            account_form = AccountSettingsForm(request.POST, instance=user)
+            if account_form.is_valid():
+                account_form.save()
+                messages.success(request, "Account settings updated successfully!")
+                return redirect('user_dashboard')
+            else:
+                for field, errors in account_form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"{field}: {error}")
+
+    # Initialize forms for GET request or if POST was invalid
+    profile_form = UserProfileForm(instance=user_profile, user=user)
+    account_form = AccountSettingsForm(instance=user)
 
     # --- Fetch History Summary ---
-    # This example fetches last 5 UserAttempt records for display in recent activity
     recent_history = UserAttempt.objects.filter(user=user).order_by('-attempted_at')[:5]
-    # You might want a more descriptive 'action_description' for history items
-    # For now, just showing question text.
     for item in recent_history:
         item.action_description = f"Attempted Q{item.question.id} ({item.question.test.name})"
+
+    context = {
+        'form': profile_form,
+        'account_form': account_form,
+        'recent_history': recent_history,
+        'total_mocks_attempted': UserAttempt.objects.filter(user=user).count(),
+        'average_score': calculate_average_score(user),
+        'completion_percentage': calculate_completion_percentage(user)
+    }
+    
+    return render(request, 'User/dashboard.html', context)
 
     # --- Fetch Mock Test / Activity Stats ---
     # This calculates stats based on UserAttempt records
@@ -485,9 +531,9 @@ def user_profile_view(request):
         'total_mocks_attempted': total_mocks_attempted,
         'average_score': average_score,
         'completion_percentage': completion_percentage,
+        'is_mobile': request.user_agent.is_mobile,
     }
     return render(request, 'User/dashboard.html', context)
-
 
 @login_required(login_url='/login/')
 def question_partial_view(request, test_id, q_index=0):
@@ -535,6 +581,7 @@ def question_partial_view(request, test_id, q_index=0):
                 'is_correct': is_correct,
                 'solution': question.solution,
                 'selected': selected_option_value,
+                'is_mobile': request.user_agent.is_mobile,
             })
 
         try:
@@ -555,6 +602,7 @@ def question_partial_view(request, test_id, q_index=0):
                 'is_correct': is_correct,
                 'solution': question.solution,
                 'selected': selected_option_value,
+                'is_mobile': request.user_agent.is_mobile,
             })
 
         is_correct = (selected_option_value == question.correct_option)
@@ -586,6 +634,7 @@ def question_partial_view(request, test_id, q_index=0):
             'is_correct': is_correct,
             'solution': question.solution,
             'selected': selected_option_value,
+            'is_mobile': request.user_agent.is_mobile,
         })
 
     # GET request: Render the current question partial
@@ -608,8 +657,8 @@ def question_partial_view(request, test_id, q_index=0):
         'is_correct': is_correct,
         'solution': question.solution,
         'selected': selected_option_value,
+        'is_mobile': request.user_agent.is_mobile,
     })
-
 
 def about_view(request):
     """
@@ -623,7 +672,8 @@ def about_view(request):
         {'name': 'Mentor Four', 'role': 'Project Advisor', 'image_url': 'https://placehold.co/200x200/2c24b0/ffffff?text=Mentor', 'bio': 'Providing strategic guidance and quality assurance.'},
     ]
     context = {
-        'team_members': team_members
+        'team_members': team_members,
+        'is_mobile': request.user_agent.is_mobile,
     }
     return render(request, 'Test_Interface/about.html', context)
 
@@ -631,4 +681,21 @@ def terms_and_conditions_view(request):
     """
     Renders the Terms and Conditions page.
     """
-    return render(request, 'Test_Interface/terms_and_conditions.html')
+    context = {
+        'is_mobile': request.user_agent.is_mobile,
+    }
+    return render(request, 'Test_Interface/terms_and_conditions.html', context)
+
+def calculate_average_score(user):
+    attempts = UserAttempt.objects.filter(user=user, reviewed=True)
+    if not attempts:
+        return 0
+    total_score = sum(attempt.score for attempt in attempts if attempt.score is not None)
+    return round(total_score / attempts.count(), 1)
+
+def calculate_completion_percentage(user):
+    attempts = UserAttempt.objects.filter(user=user)
+    if not attempts:
+        return 0
+    completed = attempts.filter(reviewed=True).count()
+    return round((completed / attempts.count()) * 100, 1)

@@ -168,3 +168,6 @@ LOGOUT_REDIRECT_URL = 'login'    # Name of the URL pattern for login
 
 # Messages framework settings
 MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
+
+# ImgBB API Key for profile picture uploads
+IMGBB_API_KEY = os.getenv('IMGBB_API_KEY', '98ba5d05a2a2466c7c96fa96fb873c3b')  # Replace with your actual API key
