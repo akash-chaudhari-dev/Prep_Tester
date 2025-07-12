@@ -484,49 +484,29 @@ def user_profile_view(request):
     profile_form = UserProfileForm(instance=user_profile, user=user)
     account_form = AccountSettingsForm(instance=user)
 
-    # --- Fetch History Summary ---
+    # --- Fetch History Summary and Stats ---
     recent_history = UserAttempt.objects.filter(user=user).order_by('-attempted_at')[:5]
     for item in recent_history:
         item.action_description = f"Attempted Q{item.question.id} ({item.question.test.name})"
 
-    context = {
-        'form': profile_form,
-        'account_form': account_form,
-        'recent_history': recent_history,
-        'total_mocks_attempted': UserAttempt.objects.filter(user=user).count(),
-        'average_score': calculate_average_score(user),
-        'completion_percentage': calculate_completion_percentage(user),
-        'is_mobile': request.user_agent.is_mobile,
-    }
-    
-    return render(request, 'User/dashboard.html', context)
-
-    # --- Fetch Mock Test / Activity Stats ---
-    # This calculates stats based on UserAttempt records
+    # Calculate Mock Test / Activity Stats
     total_mocks_attempted = UserAttempt.objects.filter(user=user).values('question__test').distinct().count()
-
-    # To calculate average score across all completed tests:
-    # This is more complex as it requires aggregating per test first, then averaging those percentages.
-    # For simplicity, let's calculate average correct answers per attempt for now.
-    # A more robust solution would involve a 'TestResult' model created upon test completion.
     all_user_attempts = UserAttempt.objects.filter(user=user)
     total_correct_answers = all_user_attempts.filter(is_correct=True).count()
     total_questions_attempted_overall = all_user_attempts.count()
 
+    # Calculate average score
     average_score = 0
     if total_questions_attempted_overall > 0:
         average_score = round((total_correct_answers / total_questions_attempted_overall) * 100, 2)
 
-    # Completion percentage is hard to calculate without a clear definition of "total possible questions"
-    # across all tests. For now, let's keep it simple or set to 0.
-    # If you want completion % of all tests available for their branch:
-    # total_tests_in_branch = Test.objects.filter(subject__branch=user_profile.branch).count()
-    # completed_tests = UserAttempt.objects.filter(user=user).values('question__test').distinct().count()
-    # completion_percentage = round((completed_tests / total_tests_in_branch) * 100, 2) if total_tests_in_branch else 0
-    completion_percentage = 0 # Placeholder, implement based on your specific logic
+    # Calculate completion percentage
+    # You can customize this calculation based on your specific requirements
+    completion_percentage = calculate_completion_percentage(user)
 
     context = {
-        'form': form,
+        'form': profile_form,
+        'account_form': account_form,
         'user': user,
         'recent_history': recent_history,
         'total_mocks_attempted': total_mocks_attempted,
@@ -534,6 +514,7 @@ def user_profile_view(request):
         'completion_percentage': completion_percentage,
         'is_mobile': request.user_agent.is_mobile,
     }
+    
     return render(request, 'User/dashboard.html', context)
 
 @login_required(login_url='/login/')
