@@ -495,7 +495,7 @@ def user_profile_view(request):
         'recent_history': recent_history,
         'total_mocks_attempted': UserAttempt.objects.filter(user=user).count(),
         'average_score': calculate_average_score(user),
-        'completion_percentage': calculate_completion_percentage(user)
+        'completion_percentage': calculate_completion_percentage(user),
         'is_mobile': request.user_agent.is_mobile,
     }
     
