@@ -1,0 +1,285 @@
+[
+  {
+    "name": "Computer Science",
+    "description": "CS Branch",
+    "subjects": [
+      {
+        "name": "Data Structures",
+        "description": "DS Course",
+        "tests": [
+          {
+            "name": "Arrays Quiz",
+            "duration_minutes": 60,
+            "total_marks": 100,
+            "questions": [
+              {
+                "text": "What is an array?",
+                "option1": "A data structure",
+                "option2": "A programming language",
+                "option3": "A database",
+                "option4": "A framework",
+                "correct_option": 1,
+                "solution": "An array is a data structure, a collection of items stored at contiguous memory locations, typically of the same data type."
+              },
+              {
+                "text": "Which operation takes O(1) time in an array?",
+                "option1": "Searching an element",
+                "option2": "Inserting an element at the beginning",
+                "option3": "Accessing an element by index",
+                "option4": "Deleting an element from the middle",
+                "correct_option": 3,
+                "solution": "Accessing an element by its index in an array takes constant time, O(1), because the memory address can be directly calculated."
+              },
+              {
+                "text": "What is the primary disadvantage of static arrays?",
+                "option1": "Slow access time",
+                "option2": "Fixed size",
+                "option3": "High memory consumption",
+                "option4": "Difficult to implement",
+                "correct_option": 2,
+                "solution": "The primary disadvantage of static arrays is their fixed size, meaning their capacity cannot be changed after declaration."
+              }
+            ]
+          },
+          {
+            "name": "Linked Lists Basics",
+            "duration_minutes": 45,
+            "total_marks": 80,
+            "questions": [
+              {
+                "text": "What is a linked list?",
+                "option1": "A sequence of elements in contiguous memory",
+                "option2": "A collection of nodes where each node points to the next",
+                "option3": "A tree-like data structure",
+                "option4": "A hash table implementation",
+                "correct_option": 2,
+                "solution": "A linked list is a linear data structure where elements are not stored at contiguous memory locations. Instead, each element (node) stores a reference to the next element."
+              },
+              {
+                "text": "Which operation is most efficient in a singly linked list?",
+                "option1": "Accessing an element by index",
+                "option2": "Inserting at the beginning",
+                "option3": "Searching for a specific value",
+                "option4": "Inserting at the end (without tail pointer)",
+                "correct_option": 2,
+                "solution": "Inserting at the beginning of a singly linked list is efficient (O(1)) as it only requires updating the head pointer."
+              },
+              {
+                "text": "What does a 'null' pointer signify in a linked list?",
+                "option1": "An error condition",
+                "option2": "The end of the list",
+                "option3": "A circular reference",
+                "option4": "An uninitialized node",
+                "correct_option": 2,
+                "solution": "A null pointer in the 'next' field of a node signifies the end of the linked list."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Operating Systems",
+        "description": "Concepts of OS",
+        "tests": [
+          {
+            "name": "Process Management",
+            "duration_minutes": 50,
+            "total_marks": 80,
+            "questions": [
+              {
+                "text": "What is a 'process' in an operating system?",
+                "option1": "A program stored on disk",
+                "option2": "An executable file",
+                "option3": "A program in execution",
+                "option4": "A collection of source code",
+                "correct_option": 3,
+                "solution": "A process is an instance of a computer program that is being executed. It includes the program code, its current activity, and its resources."
+              },
+              {
+                "text": "Which state does a process enter when it is waiting for an I/O operation to complete?",
+                "option1": "Ready",
+                "option2": "Running",
+                "option3": "Waiting/Blocked",
+                "option4": "Terminated",
+                "correct_option": 3,
+                "solution": "A process enters the Waiting/Blocked state when it is waiting for an event to occur, such as I/O completion or receiving a signal."
+              },
+              {
+                "text": "What is 'context switching'?",
+                "option1": "Changing the operating system's theme",
+                "option2": "Switching the CPU from one process to another",
+                "option3": "Changing the user interface",
+                "option4": "Swapping data between RAM and hard disk",
+                "correct_option": 2,
+                "solution": "Context switching is the process of saving the state of a process or thread, so that it can be restored and execution can be resumed from the same point later."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Information Technology",
+    "description": "IT Branch",
+    "subjects": [
+      {
+        "name": "Database Management Systems",
+        "description": "DBMS Fundamentals",
+        "tests": [
+          {
+            "name": "SQL Basics",
+            "duration_minutes": 60,
+            "total_marks": 100,
+            "questions": [
+              {
+                "text": "Which SQL command is used to retrieve data from a database?",
+                "option1": "INSERT",
+                "option2": "UPDATE",
+                "option3": "SELECT",
+                "option4": "DELETE",
+                "correct_option": 3,
+                "solution": "The SELECT statement is used to fetch data from one or more tables in a database."
+              },
+              {
+                "text": "Which keyword is used to sort the result-set of a query?",
+                "option1": "SORT BY",
+                "option2": "ORDER BY",
+                "option3": "ARRANGE BY",
+                "option4": "GROUP BY",
+                "correct_option": 2,
+                "solution": "The ORDER BY keyword is used to sort the result-set in ascending or descending order."
+              },
+              {
+                "text": "What does ACID stand for in DBMS?",
+                "option1": "Atomicity, Consistency, Isolation, Durability",
+                "option2": "Access, Control, Integrity, Data",
+                "option3": "Analysis, Concurrency, Indexing, Distribution",
+                "option4": "Application, Client, Interface, Design",
+                "correct_option": 1,
+                "solution": "ACID is an acronym for Atomicity, Consistency, Isolation, and Durability, a set of properties that guarantee valid transactions."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Computer Networks",
+        "description": "Network Protocols and Architectures",
+        "tests": [
+          {
+            "name": "OSI Model",
+            "duration_minutes": 45,
+            "total_marks": 75,
+            "questions": [
+              {
+                "text": "How many layers are in the OSI model?",
+                "option1": "4",
+                "option2": "5",
+                "option3": "7",
+                "option4": "8",
+                "correct_option": 3,
+                "solution": "The OSI (Open Systems Interconnection) model has 7 layers: Physical, Data Link, Network, Transport, Session, Presentation, and Application."
+              },
+              {
+                "text": "Which layer of the OSI model is responsible for routing?",
+                "option1": "Data Link Layer",
+                "option2": "Network Layer",
+                "option3": "Transport Layer",
+                "option4": "Application Layer",
+                "correct_option": 2,
+                "solution": "The Network Layer (Layer 3) is responsible for logical addressing and routing of packets across different networks."
+              },
+              {
+                "text": "Which device operates at the Data Link Layer?",
+                "option1": "Router",
+                "option2": "Hub",
+                "option3": "Switch",
+                "option4": "Repeater",
+                "correct_option": 3,
+                "solution": "A switch operates at the Data Link Layer (Layer 2) to forward frames based on MAC addresses."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Civil Engineering",
+    "description": "CE Branch",
+    "subjects": [
+      {
+        "name": "Structural Analysis",
+        "description": "Analysis of Structures",
+        "tests": [
+          {
+            "name": "Truss Analysis",
+            "duration_minutes": 70,
+            "total_marks": 110,
+            "questions": [
+              {
+                "text": "What is a 'truss' in structural engineering?",
+                "option1": "A solid beam structure",
+                "option2": "A framework of interconnected members forming a rigid structure",
+                "option3": "A type of foundation",
+                "option4": "A concrete slab",
+                "correct_option": 2,
+                "solution": "A truss is a structural framework composed of members connected at their ends to form a rigid structure, typically triangular units."
+              },
+              {
+                "text": "Which method is commonly used for analyzing forces in truss members?",
+                "option1": "Slope-Deflection Method",
+                "option2": "Moment Distribution Method",
+                "option3": "Method of Joints",
+                "option4": "Unit Load Method",
+                "correct_option": 3,
+                "solution": "The Method of Joints is a common technique for determining forces in the members of a truss by analyzing the equilibrium of each joint."
+              },
+              {
+                "text": "For a stable and determinate plane truss, what is the relationship between members (m), joints (j), and reactions (r)?",
+                "option1": "m + r = 2j",
+                "option2": "m = 2j - r",
+                "option3": "m + j = 2r",
+                "option4": "m = j - r",
+                "correct_option": 1,
+                "solution": "For a stable and determinate plane truss, the condition is m + r = 2j, where m is the number of members, r is the number of external reactions, and j is the number of joints."
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Geotechnical Engineering",
+        "description": "Soil Mechanics and Foundation Engineering",
+        "tests": [
+          {
+            "name": "Soil Properties",
+            "duration_minutes": 55,
+            "total_marks": 90,
+            "questions": [
+              {
+                "text": "What is the 'void ratio' of a soil sample?",
+                "option1": "Ratio of volume of voids to total volume of soil",
+                "option2": "Ratio of volume of voids to volume of solids",
+                "option3": "Ratio of volume of water to volume of voids",
+                "option4": "Ratio of volume of water to total volume of soil",
+                "correct_option": 2,
+                "solution": "Void ratio (e) is defined as the ratio of the volume of voids (Vv) to the volume of solids (Vs) in a soil mass (e = Vv / Vs)."
+              },
+              {
+                "text": "Which of the following soil types has the highest permeability?",
+                "option1": "Clay",
+                "option2": "Silt",
+                "option3": "Sand",
+                "option4": "Gravel",
+                "correct_option": 4,
+                "solution": "Gravel has the largest particle size and thus the largest voids, leading to the highest permeability among the given options."
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

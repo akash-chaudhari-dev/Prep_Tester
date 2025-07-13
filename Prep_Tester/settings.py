@@ -104,9 +104,22 @@ WSGI_APPLICATION = 'Prep_Tester.wsgi.application'
 # }
 
 
+# postgreysql local database connection
+# Uncomment the following lines to use PostgreSQL as the database
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.postgresql',
+#         'NAME': os.getenv('POSTGRES_DB', 'College-Mgmu-Offline'),
+#         'USER': os.getenv('POSTGRES_USER', 'postgres'),
+#         'PASSWORD': os.getenv('POSTGRES_PASSWORD', 'aakash1512'),
+#         'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
+#         'PORT': os.getenv('POSTGRES_PORT', '5432'),
+#     }
+# }
 
 
 # Use PostgreSQL for production
+# Uncomment the following lines to use PostgreSQL with dj_database_url
 DATABASES = {
     'default': dj_database_url.config(
         default=os.getenv("DATABASE_URL"),
